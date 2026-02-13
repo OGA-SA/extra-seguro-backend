@@ -3,36 +3,42 @@ const multer = require("multer");
 const fetch = require("node-fetch"); // v2
 const qs = require("querystring");
 const cors = require("cors");
+const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
 
 const app = express();
 const upload = multer();
+
+app.use(express.json({ limit: "10mb" }));
 
 // ⚠️ Variables de entorno (configurarlas en Render)
 const TENANT_ID = process.env.TENANT_ID;                 
 const CLIENT_ID = process.env.CLIENT_ID;                 
 const CLIENT_SECRET = process.env.CLIENT_SECRET;         
-const SITE_ID = process.env.SITE_ID; // ID del sitio SharePoint
-const DRIVE_ID = process.env.DRIVE_ID; // ID del drive de Documentos compartidos
+const SITE_ID = process.env.SITE_ID;
+const DRIVE_ID = process.env.DRIVE_ID;
 
-// Carpeta por defecto si no se pasa ninguna
+// Carpeta por defecto
 const DEFAULT_FOLDER = process.env.FOLDER_PATH || "Extra Seguro";
 
-// 🌍 CORS seguro con variable de entorno ALLOWED_ORIGIN
-// Ejemplo: ALLOWED_ORIGIN="https://agussosa24.github.io,https://otrodominio.com"
+// 🌍 CORS
 const allowedOrigins = (process.env.ALLOWED_ORIGIN || "").split(",").filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins.length > 0 ? allowedOrigins : "*", // fallback a "*" si no hay configurado
+  origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
   methods: ["POST", "OPTIONS"],
 }));
 
-// habilitar preflight específico para /upload
 app.options("/upload", cors());
+app.options("/generate-pdf-editable", cors());
 
-// Sanity check
+// Sanity
 app.get("/", (req, res) => res.send("✅ Backend funcionando"));
 
-// 1) Obtener token (app-only)
+
+// =========================
+// TOKEN GRAPH
+// =========================
+
 async function getAccessToken() {
   const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
 
@@ -57,10 +63,15 @@ async function getAccessToken() {
   return data.access_token;
 }
 
-// 2) Subir archivo a SharePoint
+
+// =========================
+// UPLOAD SHAREPOINT
+// =========================
+
 async function uploadToSharePoint(accessToken, buffer, filename, folder) {
-  const safeFolder = encodeURI(folder);       // carpeta (permite espacios)
-  const safeName   = encodeURIComponent(filename); // archivo
+  const safeFolder = encodeURI(folder);
+  const safeName   = encodeURIComponent(filename);
+
   const uploadUrl  = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
 
   const res = await fetch(uploadUrl, {
@@ -80,16 +91,18 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
   return res.json();
 }
 
-// 3) Endpoint para recibir el PDF desde el frontend
+
+// =========================
+// ENDPOINT ORIGINAL
+// =========================
+
 app.post("/upload", upload.single("pdf"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "Falta el archivo 'pdf' en form-data" });
+      return res.status(400).json({ error: "Falta el archivo 'pdf'" });
     }
 
     const filename = (req.body.filename || req.file.originalname || "archivo.pdf").trim();
-
-    // 👉 Carpeta dinámica según lo que mande la web
     const folder = (req.body.folder && req.body.folder.trim()) || DEFAULT_FOLDER;
 
     const accessToken = await getAccessToken();
@@ -102,18 +115,79 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       webUrl: result.webUrl,
       folder: folder,
     });
+
   } catch (e) {
     console.error("❌ /upload:", e);
     res.status(500).json({ error: e.message });
   }
 });
 
-// Iniciar
+
+// =========================
+// 🆕 PDF EDITABLE
+// =========================
+
+app.post("/generate-pdf-editable", async (req, res) => {
+  try {
+
+    const data = req.body;
+
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    const form = pdfDoc.getForm();
+
+    function label(text, x, y){
+      page.drawText(text, { x, y, size: 10, font });
+    }
+
+    function field(name, x, y, w=200, h=18){
+      const f = form.createTextField(name);
+      f.addToPage(page, { x, y, width: w, height: h });
+      if(data[name]) f.setText(String(data[name]));
+    }
+
+    label("Taller:", 50, 800);
+    field("taller", 120, 795);
+
+    label("Serie:", 50, 770);
+    field("serieNumero", 120, 765);
+
+    label("Siniestro:", 50, 740);
+    field("siniestro", 120, 735);
+
+    label("Técnico:", 50, 710);
+    field("QUIEN", 120, 705);
+
+    const bytes = await pdfDoc.save();
+
+    const filename = `editable_${Date.now()}.pdf`;
+
+    const token = await getAccessToken();
+    const result = await uploadToSharePoint(token, Buffer.from(bytes), filename, DEFAULT_FOLDER);
+
+    res.json({
+      ok: true,
+      webUrl: result.webUrl
+    });
+
+  } catch(e){
+    console.error("❌ editable:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+// =========================
+// START
+// =========================
+
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`🚀 Backend listo en puerto ${PORT}`);
 });
-
 
 
 

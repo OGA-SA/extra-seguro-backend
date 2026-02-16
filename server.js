@@ -8,6 +8,9 @@ const { PDFDocument } = require("pdf-lib");
 const app = express();
 const upload = multer();
 
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ limit: "20mb", extended: true }));
+
 app.use(express.json());
 
 // ================= ENV =================
@@ -176,6 +179,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

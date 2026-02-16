@@ -3,7 +3,7 @@ const multer = require("multer");
 const fetch = require("node-fetch");
 const qs = require("querystring");
 const cors = require("cors");
-const { PDFDocument } = require("pdf-lib");
+const { PDFDocument, StandardFonts } = require("pdf-lib");
 
 const app = express();
 const upload = multer();
@@ -130,25 +130,108 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 app.post("/generate-pdf-editable", async (req, res) => {
   try {
 
-    const data = req.body;
+    const d = req.body;
 
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 800]);
+    const page = pdfDoc.addPage([595, 842]);
     const form = pdfDoc.getForm();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // Campos editables ejemplo
-    const nombre = form.createTextField("nombre");
-    nombre.setText(data.nombre || "");
-    nombre.addToPage(page, { x: 50, y: 720, width: 250, height: 24 });
+    let y = 800;
 
-    const detalle = form.createTextField("detalle");
-    detalle.setText(data.detalle || "");
-    detalle.addToPage(page, { x: 50, y: 670, width: 400, height: 24 });
+    // ===== TITULO =====
+    page.drawText("FORMULARIO EXTRA SEGURO", {
+      x: 160,
+      y,
+      size: 16,
+      font
+    });
+
+    y -= 40;
+
+    // ===== DATOS SUPERIORES =====
+
+    page.drawText("Taller N°:", { x: 40, y, size: 10, font });
+    const taller = form.createTextField("taller");
+    taller.setText(d.taller || "");
+    taller.addToPage(page, { x: 110, y: y-12, width: 120, height: 18 });
+
+    page.drawText("Serie y N°:", { x: 260, y, size: 10, font });
+    const serie = form.createTextField("serie");
+    serie.setText(d.serieNumero || "");
+    serie.addToPage(page, { x: 340, y: y-12, width: 140, height: 18 });
+
+    y -= 30;
+
+    page.drawText("Fecha:", { x: 360, y, size: 10, font });
+    const fecha = form.createTextField("fecha");
+    fecha.setText(d.fecha || "");
+    fecha.addToPage(page, { x: 410, y: y-12, width: 80, height: 18 });
+
+    y -= 30;
+
+    page.drawText("Siniestro:", { x: 360, y, size: 10, font });
+    const sin = form.createTextField("siniestro");
+    sin.setText(`${d.siniestro1}-${d.siniestro2}`);
+    sin.addToPage(page, { x: 430, y: y-12, width: 100, height: 18 });
+
+    y -= 30;
+
+    page.drawText("Dificulta visual:", { x: 360, y, size: 10, font });
+    const dv = form.createTextField("visual");
+    dv.setText(d.dificultadVisual || "");
+    dv.addToPage(page, { x: 460, y: y-12, width: 100, height: 18 });
+
+    // ===== CANVAS =====
+
+    if (d.canvasImage) {
+      const base64 = d.canvasImage.split(",")[1];
+      const img = await pdfDoc.embedPng(Buffer.from(base64, "base64"));
+
+      page.drawImage(img, {
+        x: 40,
+        y: y - 200,
+        width: 300,
+        height: 150
+      });
+    }
+
+    y -= 220;
+
+    // ===== TABLAS =====
+
+    function drawTabla(tabla, startX) {
+      let ty = y;
+
+      tabla.forEach((row, i) => {
+        page.drawText(row.pieza || "", { x: startX, y: ty, size: 8, font });
+
+        const c = form.createTextField(`c_${startX}_${i}`);
+        c.setText(row.chapa || "");
+        c.addToPage(page, { x: startX+120, y: ty-10, width: 40, height: 14 });
+
+        const p = form.createTextField(`p_${startX}_${i}`);
+        p.setText(row.pintura || "");
+        p.addToPage(page, { x: startX+170, y: ty-10, width: 40, height: 14 });
+
+        ty -= 18;
+      });
+    }
+
+    drawTabla(d.tabla1 || [], 40);
+    drawTabla(d.tabla2 || [], 300);
+
+    // ===== FIRMA =====
+
+    const quien = form.createTextField("quien");
+    quien.setText(d.quien || "");
+    quien.addToPage(page, { x: 110, y: 68, width: 200, height: 18 });
+
+    // ===== SAVE =====
 
     const pdfBytes = await pdfDoc.save();
     const buffer = Buffer.from(pdfBytes);
 
-    // ===== subir a SharePoint =====
     const token = await getAccessToken();
     const filename = `editable_${Date.now()}.pdf`;
 
@@ -172,6 +255,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
 });
 
 
+
 // ================= START =================
 
 const PORT = process.env.PORT || 3000;
@@ -179,6 +263,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

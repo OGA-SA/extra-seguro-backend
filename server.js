@@ -1,43 +1,41 @@
 const express = require("express");
 const multer = require("multer");
-const fetch = require("node-fetch"); // v2
+const fetch = require("node-fetch");
 const qs = require("querystring");
 const cors = require("cors");
-const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
 
 const app = express();
 const upload = multer();
 
-app.use(express.json({ limit: "10mb" }));
+// ================= ENV =================
 
-// ⚠️ Variables de entorno (configurarlas en Render)
-const TENANT_ID = process.env.TENANT_ID;                 
-const CLIENT_ID = process.env.CLIENT_ID;                 
-const CLIENT_SECRET = process.env.CLIENT_SECRET;         
+const TENANT_ID = process.env.TENANT_ID;
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const SITE_ID = process.env.SITE_ID;
 const DRIVE_ID = process.env.DRIVE_ID;
 
-// Carpeta por defecto
 const DEFAULT_FOLDER = process.env.FOLDER_PATH || "Extra Seguro";
 
-// 🌍 CORS
-const allowedOrigins = (process.env.ALLOWED_ORIGIN || "").split(",").filter(Boolean);
+const allowedOrigins = (process.env.ALLOWED_ORIGIN || "")
+  .split(",")
+  .filter(Boolean);
+
+// ================= CORS =================
 
 app.use(cors({
   origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
-  methods: ["POST", "OPTIONS"],
+  methods: ["POST","OPTIONS","GET"]
 }));
 
 app.options("/upload", cors());
-app.options("/generate-pdf-editable", cors());
 
-// Sanity
-app.get("/", (req, res) => res.send("✅ Backend funcionando"));
+// ================= SANITY =================
+
+app.get("/", (req,res)=>res.send("✅ Backend funcionando"));
 
 
-// =========================
-// TOKEN GRAPH
-// =========================
+// ================= TOKEN =================
 
 async function getAccessToken() {
   const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
@@ -56,23 +54,19 @@ async function getAccessToken() {
   });
 
   const data = await r.json();
-  if (!r.ok) {
-    throw new Error(`Token error: ${r.status} - ${JSON.stringify(data)}`);
-  }
-
+  if (!r.ok) throw new Error(JSON.stringify(data));
   return data.access_token;
 }
 
 
-// =========================
-// UPLOAD SHAREPOINT
-// =========================
+// ================= SHAREPOINT UPLOAD =================
 
 async function uploadToSharePoint(accessToken, buffer, filename, folder) {
   const safeFolder = encodeURI(folder);
-  const safeName   = encodeURIComponent(filename);
+  const safeName = encodeURIComponent(filename);
 
-  const uploadUrl  = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
+  const uploadUrl =
+    `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
 
   const res = await fetch(uploadUrl, {
     method: "PUT",
@@ -85,109 +79,54 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Error subiendo PDF: ${res.status} - ${text}`);
+    throw new Error(text);
   }
 
   return res.json();
 }
 
 
-// =========================
-// ENDPOINT ORIGINAL
-// =========================
+// ================= ENDPOINT ORIGINAL =================
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
   try {
+
     if (!req.file) {
-      return res.status(400).json({ error: "Falta el archivo 'pdf'" });
+      return res.status(400).json({ error: "Falta pdf" });
     }
 
-    const filename = (req.body.filename || req.file.originalname || "archivo.pdf").trim();
-    const folder = (req.body.folder && req.body.folder.trim()) || DEFAULT_FOLDER;
+    const filename = req.file.originalname;
+    const folder = DEFAULT_FOLDER;
 
-    const accessToken = await getAccessToken();
-    const result = await uploadToSharePoint(accessToken, req.file.buffer, filename, folder);
+    const token = await getAccessToken();
+    const result = await uploadToSharePoint(
+      token,
+      req.file.buffer,
+      filename,
+      folder
+    );
 
     res.json({
       ok: true,
-      id: result.id,
-      name: result.name,
       webUrl: result.webUrl,
-      folder: folder,
+      name: result.name
     });
 
   } catch (e) {
-    console.error("❌ /upload:", e);
+    console.error(e);
     res.status(500).json({ error: e.message });
   }
 });
 
 
-// =========================
-// 🆕 PDF EDITABLE
-// =========================
-
-app.post("/generate-pdf-editable", async (req, res) => {
-  try {
-
-    const data = req.body;
-
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([595, 842]);
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-    const form = pdfDoc.getForm();
-
-    function label(text, x, y){
-      page.drawText(text, { x, y, size: 10, font });
-    }
-
-    function field(name, x, y, w=200, h=18){
-      const f = form.createTextField(name);
-      f.addToPage(page, { x, y, width: w, height: h });
-      if(data[name]) f.setText(String(data[name]));
-    }
-
-    label("Taller:", 50, 800);
-    field("taller", 120, 795);
-
-    label("Serie:", 50, 770);
-    field("serieNumero", 120, 765);
-
-    label("Siniestro:", 50, 740);
-    field("siniestro", 120, 735);
-
-    label("Técnico:", 50, 710);
-    field("QUIEN", 120, 705);
-
-    const bytes = await pdfDoc.save();
-
-    const filename = `editable_${Date.now()}.pdf`;
-
-    const token = await getAccessToken();
-    const result = await uploadToSharePoint(token, Buffer.from(bytes), filename, DEFAULT_FOLDER);
-
-    res.json({
-      ok: true,
-      webUrl: result.webUrl
-    });
-
-  } catch(e){
-    console.error("❌ editable:", e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-
-// =========================
-// START
-// =========================
+// ================= START =================
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Backend listo en puerto ${PORT}`);
+  console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

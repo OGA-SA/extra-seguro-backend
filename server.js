@@ -3,9 +3,12 @@ const multer = require("multer");
 const fetch = require("node-fetch");
 const qs = require("querystring");
 const cors = require("cors");
+const { PDFDocument } = require("pdf-lib");
 
 const app = express();
 const upload = multer();
+
+app.use(express.json());
 
 // ================= ENV =================
 
@@ -28,7 +31,7 @@ app.use(cors({
   methods: ["POST","OPTIONS","GET"]
 }));
 
-app.options("/upload", cors());
+app.options("*", cors());
 
 // ================= SANITY =================
 
@@ -119,6 +122,53 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 });
 
 
+// ================= PDF EDITABLE =================
+
+app.post("/generate-pdf-editable", async (req, res) => {
+  try {
+
+    const data = req.body;
+
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([600, 800]);
+    const form = pdfDoc.getForm();
+
+    // Campos editables ejemplo
+    const nombre = form.createTextField("nombre");
+    nombre.setText(data.nombre || "");
+    nombre.addToPage(page, { x: 50, y: 720, width: 250, height: 24 });
+
+    const detalle = form.createTextField("detalle");
+    detalle.setText(data.detalle || "");
+    detalle.addToPage(page, { x: 50, y: 670, width: 400, height: 24 });
+
+    const pdfBytes = await pdfDoc.save();
+    const buffer = Buffer.from(pdfBytes);
+
+    // ===== subir a SharePoint =====
+    const token = await getAccessToken();
+    const filename = `editable_${Date.now()}.pdf`;
+
+    const result = await uploadToSharePoint(
+      token,
+      buffer,
+      filename,
+      DEFAULT_FOLDER
+    );
+
+    res.json({
+      ok: true,
+      name: filename,
+      webUrl: result.webUrl
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ================= START =================
 
 const PORT = process.env.PORT || 3000;
@@ -126,6 +176,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

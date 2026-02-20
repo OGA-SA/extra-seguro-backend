@@ -316,7 +316,7 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
 drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
 
 drawCenteredText(
-  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA\nEN FUTURAS RECLAMACIONES",
+  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
   startX,
   infoY,
   totalTablesWidth,
@@ -378,7 +378,30 @@ drawCenteredText(
 
           const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
-          f.addToPage(page,{ x, y, width:colW[c], height:rowH });
+          
+          // 🔹 tamaño fijo para todos
+          f.setFontSize(8);
+          
+          // 🔹 quitar auto resize
+          f.enableMultiline();
+          f.disableScrolling();
+          
+          // 🔹 centrar SOLO chapa y pintura
+          if (c === 1 || c === 2) {
+            f.setAlignment(1); // 0=left, 1=center, 2=right
+          }
+          
+          // 🔹 pieza queda alineada izquierda pero tamaño fijo
+          if (c === 0) {
+            f.setAlignment(0);
+          }
+          
+          f.addToPage(page,{
+            x,
+            y,
+            width: colW[c],
+            height: rowH
+          });
 
           page.drawRectangle({
             x,
@@ -467,6 +490,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

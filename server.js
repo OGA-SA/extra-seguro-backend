@@ -269,45 +269,72 @@ app.post("/generate-pdf-editable", async (req, res) => {
     drawRightField("Siniestro:", "siniestro", topY - 10);
     drawRightField("Dificultad visual:", "dificultaVisual", topY - 60);
 
-    // =================================================
-    // TEXTO INFORMATIVO
-    // =================================================
+ 
+// =================================================
+// TEXTO INFORMATIVO (CENTRADO REAL)
+// =================================================
 
-    const infoY = 480;
-    const boxHeight = 18;
+const infoY = 480;
+const boxHeight = 18;
 
-    function drawBorderBox(x, y, width, height) {
-      page.drawLine({ start: { x, y }, end: { x: x + width, y }, thickness: 0.5 });
-      page.drawLine({ start: { x, y }, end: { x, y: y + height }, thickness: 0.5 });
-      page.drawLine({ start: { x: x + width, y }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-      page.drawLine({ start: { x, y: y + height }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-    }
+function drawBorderBox(x, y, width, height) {
+  page.drawLine({ start: { x, y }, end: { x: x + width, y }, thickness: 0.5 });
+  page.drawLine({ start: { x, y }, end: { x, y: y + height }, thickness: 0.5 });
+  page.drawLine({ start: { x: x + width, y }, end: { x: x + width, y: y + height }, thickness: 0.5 });
+  page.drawLine({ start: { x, y: y + height }, end: { x: x + width, y: y + height }, thickness: 0.5 });
+}
 
-    drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
+function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
 
-    page.drawText(
-      "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-      {
-        x: startX + 5,
-        y: infoY + 5,
-        size: 8,
-        font: fontBold,
-        color: rgb(0,0,0)
-      }
-    );
+  const lines = text.split("\n");
+  const lineHeight = size + 2;
 
-    drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight);
+  lines.forEach((line, index) => {
 
-    page.drawText(
-      "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
-      {
-        x: startX + 5,
-        y: infoY - boxHeight + 5,
-        size: 8,
-        font: fontBold,
-        color: rgb(0,0,0)
-      }
-    );
+    const textWidth = fontUsed.widthOfTextAtSize(line, size);
+
+    const textX = boxX + (boxWidth - textWidth) / 2;
+
+    const textY =
+      boxY +
+      (boxHeight / 2) -
+      (lineHeight * lines.length) / 2 +
+      (lines.length - 1 - index) * lineHeight +
+      2;
+
+    page.drawText(line, {
+      x: textX,
+      y: textY,
+      size: size,
+      font: fontUsed,
+      color: rgb(0,0,0)
+    });
+  });
+}
+
+// Primera línea
+drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
+
+drawCenteredText(
+  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA\nEN FUTURAS RECLAMACIONES",
+  startX,
+  infoY,
+  totalTablesWidth,
+  fontBold,
+  8
+);
+
+// Segunda línea
+drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight);
+
+drawCenteredText(
+  "ANULA / REEMPLAZA EXTRA SEGURO DE FECHA:",
+  startX,
+  infoY - boxHeight,
+  totalTablesWidth,
+  fontBold,
+  8
+);
 
     // =================================================
     // TABLAS
@@ -440,6 +467,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

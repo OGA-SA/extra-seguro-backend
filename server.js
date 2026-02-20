@@ -210,7 +210,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     // ================= TEXTO INFORMATIVO =================
 
-    const infoY = 650;
+    const infoY = 500;
 const boxHeight = 18;
 const fullWidth = 515;
 
@@ -302,8 +302,8 @@ page.drawText(
           const gap = 20;
           const startX = 40;
           
-          drawTabla(data.tabla1, startX, 600);
-          drawTabla(data.tabla2, startX + tableWidth + gap, 600);
+          drawTabla(data.tabla1, startX, 460);
+          drawTabla(data.tabla2, startX + tableWidth + gap, 460);
 
     // ================= GUARDAR =================
 
@@ -339,6 +339,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

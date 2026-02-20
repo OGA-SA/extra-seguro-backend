@@ -379,17 +379,7 @@ drawCenteredText(
           const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
           
-          // 🔹 tamaño fijo para todos
-          f.setFontSize(8);
-          
-          // 🔹 quitar auto resize
-          f.enableMultiline();
-          f.disableScrolling();
-          
-          // 🔹 centrar SOLO chapa y pintura
-          if (c === 1 || c === 2) {
-            f.setAlignment(1); // 0=left, 1=center, 2=right
-          }
+         tamaño fijo para todos
           
           // 🔹 pieza queda alineada izquierda pero tamaño fijo
           if (c === 0) {
@@ -490,6 +480,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

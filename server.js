@@ -219,51 +219,43 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     // ================= TEXTO INFORMATIVO =================
 
-    const infoY = 500;
-    const boxHeight = 18;
+const infoY = 500;
+const boxHeight = 18;
 
-    // Primera línea
-    page.drawRectangle({
-      x: startX,
-      y: infoY,
-      width: totalTablesWidth,
-      height: boxHeight,
-      borderWidth: 0.5,
-      borderColor: rgb(0,0,0)
-    });
+function drawBorderBox(x, y, width, height) {
+  page.drawLine({ start: { x, y }, end: { x: x + width, y }, thickness: 0.5 });
+  page.drawLine({ start: { x, y }, end: { x, y: y + height }, thickness: 0.5 });
+  page.drawLine({ start: { x: x + width, y }, end: { x: x + width, y: y + height }, thickness: 0.5 });
+  page.drawLine({ start: { x, y: y + height }, end: { x: x + width, y: y + height }, thickness: 0.5 });
+}
 
-    page.drawText(
-      "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-      {
-        x: startX + 5,
-        y: infoY + 5,
-        size: 8,
-        font: fontBold,
-        color: rgb(0,0,0)
-      }
-    );
+// Primera línea
+drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
 
-    // Segunda línea
-    page.drawRectangle({
-      x: startX,
-      y: infoY - boxHeight,
-      width: totalTablesWidth,
-      height: boxHeight,
-      borderWidth: 0.5,
-      borderColor: rgb(0,0,0)
-    });
+page.drawText(
+  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
+  {
+    x: startX + 5,
+    y: infoY + 5,
+    size: 8,
+    font: fontBold,
+    color: rgb(0,0,0)
+  }
+);
 
-    page.drawText(
-      "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
-      {
-        x: startX + 5,
-        y: infoY - boxHeight + 5,
-        size: 8,
-        font: fontBold,
-        color: rgb(0,0,0)
-      }
-    );
+// Segunda línea
+drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight);
 
+page.drawText(
+  "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
+  {
+    x: startX + 5,
+    y: infoY - boxHeight + 5,
+    size: 8,
+    font: fontBold,
+    color: rgb(0,0,0)
+  }
+);
     // ================= TABLAS =================
 
     function drawTabla(tabla, startX, startY){
@@ -348,6 +340,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 

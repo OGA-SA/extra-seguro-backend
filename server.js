@@ -211,18 +211,48 @@ app.post("/generate-pdf-editable", async (req, res) => {
     // ================= TEXTO INFORMATIVO =================
 
     const infoY = 650;
+const boxHeight = 18;
+const fullWidth = 515;
 
-    page.drawRectangle({ x:40, y:infoY, width:515, height:18, borderWidth:0.5 });
-    page.drawText(
-      "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-      { x:45, y:infoY+5, size:8, font:fontBold }
-    );
+// Primera línea
+page.drawRectangle({
+  x:40,
+  y:infoY,
+  width:fullWidth,
+  height:boxHeight,
+  borderWidth:0.5
+});
 
-    page.drawRectangle({ x:40, y:infoY-18, width:515, height:18, borderWidth:0.5 });
-    page.drawText(
-      "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
-      { x:45, y:infoY-13, size:8, font:fontBold }
-    );
+page.drawText(
+  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
+  {
+    x:45,
+    y:infoY + 5,
+    size:8,
+    font: fontBold,
+    color: rgb(0,0,0) // forzamos negro
+  }
+);
+
+// Segunda línea
+page.drawRectangle({
+  x:40,
+  y:infoY - boxHeight,
+  width:fullWidth,
+  height:boxHeight,
+  borderWidth:0.5
+});
+
+page.drawText(
+  "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
+  {
+    x:45,
+    y:infoY - boxHeight + 5,
+    size:8,
+    font: fontBold,
+    color: rgb(0,0,0)
+  }
+);;
 
   
 
@@ -309,6 +339,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

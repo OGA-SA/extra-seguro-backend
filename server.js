@@ -379,7 +379,7 @@ drawCenteredText(
           const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
           
-         tamaño fijo para todos
+       //  tamaño fijo para todos
           
           // 🔹 pieza queda alineada izquierda pero tamaño fijo
           if (c === 0) {
@@ -480,6 +480,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

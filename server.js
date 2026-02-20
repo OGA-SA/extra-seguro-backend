@@ -140,9 +140,17 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+    // =================================================
+    // VARIABLES DE DISEÑO (USADAS EN TODO EL LAYOUT)
+    // =================================================
+
+    const tableWidth = 240;
+    const gap = 20;
+    const startX = 40;
+    const totalTablesWidth = tableWidth * 2 + gap;
+
     // ================= HEADER =================
 
-    // Logo
     if(data.logoCars){
       const img = await pdfDoc.embedJpg(Buffer.from(data.logoCars,"base64"));
       page.drawImage(img,{
@@ -153,7 +161,6 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
     }
 
-    // Fondo gris título
     page.drawRectangle({
       x: 150,
       y: 790,
@@ -166,7 +173,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
       x: 170,
       y: 794,
       size: 12,
-      font: fontBold
+      font: fontBold,
+      color: rgb(0,0,0)
     });
 
     // ================= CAMPOS SUPERIORES =================
@@ -183,7 +191,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
         y,
         width,
         height:16,
-        borderWidth:0.5
+        borderWidth:0.5,
+        borderColor: rgb(0,0,0)
       });
     }
 
@@ -193,8 +202,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     drawLabelField("Dificulta visual:", "dificultaVisual", 40, 720, 300);
     drawLabelField("Por cars:", "porCars", 40, 690, 300);
-    
-  // ================= IMG PARABRISAS =================
+
+    // ================= IMG PARABRISAS =================
 
     if(data.canvasImage){
       const img = await pdfDoc.embedPng(
@@ -211,52 +220,51 @@ app.post("/generate-pdf-editable", async (req, res) => {
     // ================= TEXTO INFORMATIVO =================
 
     const infoY = 500;
-const boxHeight = 18;
-const fullWidth = 515;
+    const boxHeight = 18;
 
-// Primera línea
-page.drawRectangle({
-  x:40,
-  y:infoY,
-  width:fullWidth,
-  height:boxHeight,
-  borderWidth:0.5
-});
+    // Primera línea
+    page.drawRectangle({
+      x: startX,
+      y: infoY,
+      width: totalTablesWidth,
+      height: boxHeight,
+      borderWidth: 0.5,
+      borderColor: rgb(0,0,0)
+    });
 
-page.drawText(
-  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-  {
-    x:45,
-    y:infoY + 5,
-    size:8,
-    font: fontBold,
-    color: rgb(0,0,0) // forzamos negro
-  }
-);
+    page.drawText(
+      "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
+      {
+        x: startX + 5,
+        y: infoY + 5,
+        size: 8,
+        font: fontBold,
+        color: rgb(0,0,0)
+      }
+    );
 
-// Segunda línea
-page.drawRectangle({
-  x:40,
-  y:infoY - boxHeight,
-  width:fullWidth,
-  height:boxHeight,
-  borderWidth:0.5
-});
+    // Segunda línea
+    page.drawRectangle({
+      x: startX,
+      y: infoY - boxHeight,
+      width: totalTablesWidth,
+      height: boxHeight,
+      borderWidth: 0.5,
+      borderColor: rgb(0,0,0)
+    });
 
-page.drawText(
-  "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
-  {
-    x:45,
-    y:infoY - boxHeight + 5,
-    size:8,
-    font: fontBold,
-    color: rgb(0,0,0)
-  }
-);;
+    page.drawText(
+      "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
+      {
+        x: startX + 5,
+        y: infoY - boxHeight + 5,
+        size: 8,
+        font: fontBold,
+        color: rgb(0,0,0)
+      }
+    );
 
-  
-
-    // ================= TABLAS LADO A LADO =================
+    // ================= TABLAS =================
 
     function drawTabla(tabla, startX, startY){
 
@@ -273,10 +281,17 @@ page.drawText(
           width:colW[i],
           height:rowH,
           color:rgb(0.9,0.9,0.9),
-          borderWidth:0.5
+          borderWidth:0.5,
+          borderColor: rgb(0,0,0)
         });
 
-        page.drawText(h,{ x:x+4, y:y+4, size:8, font:fontBold });
+        page.drawText(h,{ 
+          x:x+4, 
+          y:y+4, 
+          size:8, 
+          font:fontBold,
+          color: rgb(0,0,0)
+        });
       });
 
       y -= rowH;
@@ -291,19 +306,22 @@ page.drawText(
           f.setText(val || "");
           f.addToPage(page,{ x, y, width:colW[c], height:rowH });
 
-          page.drawRectangle({ x, y, width:colW[c], height:rowH, borderWidth:0.5 });
+          page.drawRectangle({ 
+            x, 
+            y, 
+            width:colW[c], 
+            height:rowH, 
+            borderWidth:0.5,
+            borderColor: rgb(0,0,0)
+          });
         });
 
         y -= rowH;
       });
     }
 
-         const tableWidth = 240;
-          const gap = 20;
-          const startX = 40;
-          
-          drawTabla(data.tabla1, startX, 460);
-          drawTabla(data.tabla2, startX + tableWidth + gap, 460);
+    drawTabla(data.tabla1, startX, 460);
+    drawTabla(data.tabla2, startX + tableWidth + gap, 460);
 
     // ================= GUARDAR =================
 
@@ -330,21 +348,6 @@ page.drawText(
     res.status(500).json({ error: err.message });
   }
 });
-
-
-// ================= START =================
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("🚀 Backend listo puerto", PORT);
-});
-
-
-
-
-
-
 
 
 

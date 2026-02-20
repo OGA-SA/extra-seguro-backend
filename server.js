@@ -193,6 +193,20 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     drawLabelField("Dificulta visual:", "dificultaVisual", 40, 720, 300);
     drawLabelField("Por cars:", "porCars", 40, 690, 300);
+    
+  // ================= IMG PARABRISAS =================
+
+    if(data.canvasImage){
+      const img = await pdfDoc.embedPng(
+        Buffer.from(data.canvasImage.split(",")[1],"base64")
+      );
+      page.drawImage(img,{
+        x: 40,
+        y: 520,
+        width: 515,
+        height: 180
+      });
+    }
 
     // ================= TEXTO INFORMATIVO =================
 
@@ -210,20 +224,13 @@ app.post("/generate-pdf-editable", async (req, res) => {
       { x:45, y:infoY-13, size:8, font:fontBold }
     );
 
-    const fechaRep = form.createTextField("fechaReemplazo");
-    fechaRep.setText(data.fechaReemplazo || "");
-    fechaRep.addToPage(page,{
-      x:360,
-      y:infoY-16,
-      width:150,
-      height:14
-    });
+  
 
     // ================= TABLAS LADO A LADO =================
 
     function drawTabla(tabla, startX, startY){
 
-      const colW = [160,70,70];
+      const colW = [140,50,50];
       const headers = ["PIEZA","CHAPA","PINTURA"];
       const rowH = 16;
       let y = startY;
@@ -261,8 +268,12 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
     }
 
-    drawTabla(data.tabla1, 40, 600);
-    drawTabla(data.tabla2, 320, 600);
+         const tableWidth = 240;
+          const gap = 20;
+          const startX = 40;
+          
+          drawTabla(data.tabla1, startX, 600);
+          drawTabla(data.tabla2, startX + tableWidth + gap, 600);
 
     // ================= GUARDAR =================
 
@@ -298,6 +309,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

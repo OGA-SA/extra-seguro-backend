@@ -203,70 +203,127 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     // ================= TEXTO ENTRE IMAGEN Y TABLA =================
 
-    page.drawRectangle({ x:40, y:490, width:515, height:36, borderWidth:1 });
+   page.drawRectangle({ x:40, y:490, width:515, height:36, borderWidth:1 })const infoY = 500;
+const boxHeight = 18;
+const fullWidth = 515;
 
-    const obs = form.createTextField("dificultadVisual");
-    obs.setText(data.dificultadVisual || "");
-    obs.addToPage(page,{ x:45, y:495, width:505, height:26 });
+// Primera línea
+page.drawRectangle({
+  x:40,
+  y:infoY,
+  width:fullWidth,
+  height:boxHeight,
+  borderWidth:0.5
+});
+
+page.drawText(
+  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
+  {
+    x:45,
+    y:infoY + 5,
+    size:8,
+    font: fontBold
+  }
+);
+
+// Segunda línea (pegada abajo)
+page.drawRectangle({
+  x:40,
+  y:infoY - boxHeight,
+  width:fullWidth,
+  height:boxHeight,
+  borderWidth:0.5
+});
+
+page.drawText(
+  "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
+  {
+    x:45,
+    y:infoY - boxHeight + 5,
+    size:8,
+    font: fontBold
+  }
+);
+
+// Campo editable para fecha al final de la segunda línea
+const fechaReplace = form.createTextField("fechaReemplazo");
+fechaReplace.setText(data.fechaReemplazo || "");
+fechaReplace.addToPage(page,{
+  x:360,
+  y:infoY - boxHeight + 2,
+  width:150,
+  height:14
+});
 
     // ================= TABLAS =================
 
-    function drawTabla(tabla, startY){
+   function drawTablaVertical(tabla, startX, startY){
 
-      const colX = [40, 300, 430];
-      const colW = [260, 130, 125];
-      let y = startY;
+  const colW = [160, 70, 70];
+  const headers = ["PIEZA","CHAPA","PINTURA"];
+  const rowHeight = 16;
 
-      // encabezados
-      ["PIEZA","CHAPA","PINTURA"].forEach((h,i)=>{
-        page.drawRectangle({
-          x: colX[i],
-          y,
-          width: colW[i],
-          height: 18,
-          color: rgb(0.9,0.9,0.9),
-          borderWidth:1
-        });
-        page.drawText(h,{
-          x: colX[i]+4,
-          y: y+5,
-          size:9,
-          font: fontBold
-        });
+  let y = startY;
+
+  // Encabezados
+  headers.forEach((h,i)=>{
+    page.drawRectangle({
+      x: startX + colW.slice(0,i).reduce((a,b)=>a+b,0),
+      y,
+      width: colW[i],
+      height: rowHeight,
+      color: rgb(0.9,0.9,0.9),
+      borderWidth:0.5
+    });
+
+    page.drawText(h,{
+      x: startX + colW.slice(0,i).reduce((a,b)=>a+b,0) + 4,
+      y: y+4,
+      size:8,
+      font: fontBold
+    });
+  });
+
+  y -= rowHeight;
+
+  // Filas
+  tabla.forEach((row,i)=>{
+
+    const values = [row.pieza,row.chapa,row.pintura];
+
+    values.forEach((val,c)=>{
+      const x = startX + colW.slice(0,c).reduce((a,b)=>a+b,0);
+
+      const f = form.createTextField(`col_${startX}_${i}_${c}`);
+      f.setText(val || "");
+      f.addToPage(page,{
+        x,
+        y,
+        width: colW[c],
+        height: rowHeight
       });
 
-      y -= 18;
-
-      tabla.forEach((row,i)=>{
-        const vals=[row.pieza,row.chapa,row.pintura];
-
-        vals.forEach((val,c)=>{
-          const f = form.createTextField(`t_${startY}_${i}_${c}`);
-          f.setText(val || "");
-          f.addToPage(page,{
-            x: colX[c],
-            y,
-            width: colW[c],
-            height: 18
-          });
-
-          page.drawRectangle({
-            x: colX[c],
-            y,
-            width: colW[c],
-            height: 18,
-            borderWidth:1
-          });
-        });
-
-        y -= 18;
+      page.drawRectangle({
+        x,
+        y,
+        width: colW[c],
+        height: rowHeight,
+        borderWidth:0.5
       });
+    });
 
-      return y;
-    }
+    y -= rowHeight;
+  });
+}
 
-    let y = drawTabla(data.tabla1 || [], 460);
-    drawTabla(data.tabla2 || [], y-20);
+// Posición debajo del texto
+const tablasStartY = 460;
+
+// Tabla izquierda
+drawTablaVertical(data.tabla1 || [], 40, tablasStartY);
+
+// Tabla derecha
+drawTablaVertical(data.tabla2 || [], 320, tablasStartY);
 
     // ================= SAVE =================
 
@@ -304,6 +361,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("🚀 Backend listo puerto", PORT);
 });
+
 
 
 

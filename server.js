@@ -123,7 +123,6 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
   }
 });
 
-
 // =====================================================
 // ================= PDF EDITABLE ======================
 // =====================================================
@@ -141,7 +140,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
     // =================================================
-    // VARIABLES DE DISEÑO (USADAS EN TODO EL LAYOUT)
+    // VARIABLES DE DISEÑO
     // =================================================
 
     const tableWidth = 240;
@@ -149,7 +148,9 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const startX = 40;
     const totalTablesWidth = tableWidth * 2 + gap;
 
-    // ================= HEADER =================
+    // =================================================
+    // HEADER
+    // =================================================
 
     if(data.logoCars){
       const img = await pdfDoc.embedJpg(Buffer.from(data.logoCars,"base64"));
@@ -177,7 +178,9 @@ app.post("/generate-pdf-editable", async (req, res) => {
       color: rgb(0,0,0)
     });
 
-    // ================= CAMPOS SUPERIORES =================
+    // =================================================
+    // CAMPOS SUPERIORES
+    // =================================================
 
     function drawLabelField(label, name, x, y, width){
       page.drawText(label,{ x, y: y+4, size:9, font });
@@ -200,63 +203,115 @@ app.post("/generate-pdf-editable", async (req, res) => {
     drawLabelField("Serie y N°:", "serieNumero", 210, 750, 100);
     drawLabelField("Fecha:", "fecha", 380, 750, 80);
 
-    drawLabelField("Dificulta visual:", "dificultaVisual", 40, 720, 300);
-    drawLabelField("Por cars:", "porCars", 40, 690, 300);
+    // =================================================
+    // BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)
+    // =================================================
 
-    // ================= IMG PARABRISAS =================
+    const leftColX = 40;
+    const leftColWidth = 360;
 
+    const rightColX = leftColX + leftColWidth + 15;
+    const rightColWidth = 160;
+
+    const topY = 700;
+    const imageHeight = 170;
+
+    // Imagen parabrisas
     if(data.canvasImage){
       const img = await pdfDoc.embedPng(
         Buffer.from(data.canvasImage.split(",")[1],"base64")
       );
+
       page.drawImage(img,{
-        x: 40,
-        y: 520,
-        width: 515,
-        height: 180
+        x: leftColX,
+        y: topY - imageHeight,
+        width: leftColWidth,
+        height: imageHeight
+      });
+
+      page.drawRectangle({
+        x: leftColX,
+        y: topY - imageHeight,
+        width: leftColWidth,
+        height: imageHeight,
+        borderWidth: 0.5,
+        borderColor: rgb(0,0,0)
       });
     }
 
-    // ================= TEXTO INFORMATIVO =================
+    function drawRightField(label, name, y){
+      page.drawText(label,{
+        x: rightColX,
+        y: y + 4,
+        size: 9,
+        font: font
+      });
 
-const infoY = 500;
-const boxHeight = 18;
+      const f = form.createTextField(name);
+      f.setText(data[name] || "");
+      f.addToPage(page,{
+        x: rightColX,
+        y: y - 16,
+        width: rightColWidth,
+        height: 16
+      });
 
-function drawBorderBox(x, y, width, height) {
-  page.drawLine({ start: { x, y }, end: { x: x + width, y }, thickness: 0.5 });
-  page.drawLine({ start: { x, y }, end: { x, y: y + height }, thickness: 0.5 });
-  page.drawLine({ start: { x: x + width, y }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-  page.drawLine({ start: { x, y: y + height }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-}
+      page.drawRectangle({
+        x: rightColX,
+        y: y - 16,
+        width: rightColWidth,
+        height: 16,
+        borderWidth: 0.5,
+        borderColor: rgb(0,0,0)
+      });
+    }
 
-// Primera línea
-drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
+    drawRightField("Siniestro:", "siniestro", topY - 10);
+    drawRightField("Dificultad visual:", "dificultaVisual", topY - 60);
 
-page.drawText(
-  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-  {
-    x: startX + 5,
-    y: infoY + 5,
-    size: 8,
-    font: fontBold,
-    color: rgb(0,0,0)
-  }
-);
+    // =================================================
+    // TEXTO INFORMATIVO
+    // =================================================
 
-// Segunda línea
-drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight);
+    const infoY = 480;
+    const boxHeight = 18;
 
-page.drawText(
-  "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
-  {
-    x: startX + 5,
-    y: infoY - boxHeight + 5,
-    size: 8,
-    font: fontBold,
-    color: rgb(0,0,0)
-  }
-);
-    // ================= TABLAS =================
+    function drawBorderBox(x, y, width, height) {
+      page.drawLine({ start: { x, y }, end: { x: x + width, y }, thickness: 0.5 });
+      page.drawLine({ start: { x, y }, end: { x, y: y + height }, thickness: 0.5 });
+      page.drawLine({ start: { x: x + width, y }, end: { x: x + width, y: y + height }, thickness: 0.5 });
+      page.drawLine({ start: { x, y: y + height }, end: { x: x + width, y: y + height }, thickness: 0.5 });
+    }
+
+    drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
+
+    page.drawText(
+      "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
+      {
+        x: startX + 5,
+        y: infoY + 5,
+        size: 8,
+        font: fontBold,
+        color: rgb(0,0,0)
+      }
+    );
+
+    drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight);
+
+    page.drawText(
+      "ANULA/REMPLAZA EXTRA SEGURO DE FECHA:",
+      {
+        x: startX + 5,
+        y: infoY - boxHeight + 5,
+        size: 8,
+        font: fontBold,
+        color: rgb(0,0,0)
+      }
+    );
+
+    // =================================================
+    // TABLAS
+    // =================================================
 
     function drawTabla(tabla, startX, startY){
 
@@ -277,10 +332,10 @@ page.drawText(
           borderColor: rgb(0,0,0)
         });
 
-        page.drawText(h,{ 
-          x:x+4, 
-          y:y+4, 
-          size:8, 
+        page.drawText(h,{
+          x:x+4,
+          y:y+4,
+          size:8,
           font:fontBold,
           color: rgb(0,0,0)
         });
@@ -298,11 +353,11 @@ page.drawText(
           f.setText(val || "");
           f.addToPage(page,{ x, y, width:colW[c], height:rowH });
 
-          page.drawRectangle({ 
-            x, 
-            y, 
-            width:colW[c], 
-            height:rowH, 
+          page.drawRectangle({
+            x,
+            y,
+            width:colW[c],
+            height:rowH,
             borderWidth:0.5,
             borderColor: rgb(0,0,0)
           });
@@ -310,12 +365,49 @@ page.drawText(
 
         y -= rowH;
       });
+
+      return y;
     }
 
-    drawTabla(data.tabla1, startX, 460);
-    drawTabla(data.tabla2, startX + tableWidth + gap, 460);
+    const tableStartY = 440;
 
-    // ================= GUARDAR =================
+    const endY1 = drawTabla(data.tabla1, startX, tableStartY);
+    const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
+
+    const bottomTablesY = Math.min(endY1, endY2);
+
+    // =================================================
+    // CAMPO POR CARS (AL FINAL)
+    // =================================================
+
+    page.drawText("Por cars:",{
+      x: startX,
+      y: bottomTablesY - 20,
+      size: 9,
+      font: font
+    });
+
+    const porCarsField = form.createTextField("porCars");
+    porCarsField.setText(data.porCars || "");
+    porCarsField.addToPage(page,{
+      x: startX,
+      y: bottomTablesY - 36,
+      width: 200,
+      height: 16
+    });
+
+    page.drawRectangle({
+      x: startX,
+      y: bottomTablesY - 36,
+      width: 200,
+      height: 16,
+      borderWidth: 0.5,
+      borderColor: rgb(0,0,0)
+    });
+
+    // =================================================
+    // GUARDAR
+    // =================================================
 
     const pdfBytes = await pdfDoc.save();
 
@@ -340,6 +432,7 @@ page.drawText(
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 

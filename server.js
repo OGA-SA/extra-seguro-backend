@@ -309,7 +309,7 @@ anioField.addToPage(page,{
 //         DIFICULTAD VISUAL
 // =============================================
 
-const dificultadY = fila1Y - 35;
+const dificultadY = fila1Y - 22;
 
 page.drawText("¿Dificultad visual?:", {
   x: rightColX,
@@ -548,6 +548,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

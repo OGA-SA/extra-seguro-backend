@@ -474,7 +474,7 @@ drawCenteredText(
     // CAMPO POR CARS (AL FINAL)
     // =================================================
 
-    page.drawText("Por cars:",{
+    page.drawText("POR CARS:",{
       x: startX,
       y: bottomTablesY - 20,
       size: 9,
@@ -482,7 +482,7 @@ drawCenteredText(
     });
 
     const porCarsField = form.createTextField("porCars");
-    porCarsField.setText(data.QUIEN || "");
+    porCarsField.setText(data.quien || "");
     porCarsField.addToPage(page,{
       x: startX,
       y: bottomTablesY - 36,
@@ -534,6 +534,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

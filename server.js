@@ -209,7 +209,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     // =================================================
 
     const leftColX = 40;
-    const leftColWidth = 360;
+    const leftColWidth = 330;
 
     const rightColX = leftColX + leftColWidth + 15;
     const rightColWidth = 160;
@@ -299,7 +299,7 @@ page.drawText("Año:", {
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
-  x: rightColX + 165,
+  x: rightColX + 130,
   y: fila1Y - 4,
   width: 50,
   height: 14
@@ -548,6 +548,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

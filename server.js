@@ -267,13 +267,15 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
     }
 
-   // ================= Siniestro + Año =================
+// =============================================
+//     SINIESTRO + AÑO (MISMA FILA)
+// =============================================
 
-const siniestroY = topY - 10;
+const fila1Y = topY - 20;
 
 page.drawText("Siniestro:", {
   x: rightColX,
-  y: siniestroY + 4,
+  y: fila1Y,
   size: 9,
   font: font
 });
@@ -281,24 +283,15 @@ page.drawText("Siniestro:", {
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
 siniestroField.addToPage(page,{
-  x: rightColX,
-  y: siniestroY - 16,
-  width: 90,
-  height: 16
-});
-
-page.drawRectangle({
-  x: rightColX,
-  y: siniestroY - 16,
-  width: 90,
-  height: 16,
-  borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
+  x: rightColX + 55,
+  y: fila1Y - 4,
+  width: 60,
+  height: 14
 });
 
 page.drawText("Año:", {
-  x: rightColX + 100,
-  y: siniestroY + 4,
+  x: rightColX + 130,
+  y: fila1Y,
   size: 9,
   font: font
 });
@@ -306,31 +299,21 @@ page.drawText("Año:", {
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
-  x: rightColX + 100,
-  y: siniestroY - 16,
+  x: rightColX + 165,
+  y: fila1Y - 4,
   width: 50,
-  height: 16
+  height: 14
 });
-
-page.drawRectangle({
-  x: rightColX + 100,
-  y: siniestroY - 16,
-  width: 50,
-  height: 16,
-  borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
-});
-
 
 // =============================================
 //         DIFICULTAD VISUAL
 // =============================================
 
-const dificultadY = siniestroY - 50; // lo bajamos debajo de siniestro
+const dificultadY = siniestroY - 35;
 
 page.drawText("¿Dificultad visual?:", {
   x: rightColX,
-  y: dificultadY + 4,
+  y: dificultadY,
   size: 9,
   font: font
 });
@@ -338,17 +321,17 @@ page.drawText("¿Dificultad visual?:", {
 const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
 dificultadVisualField.addToPage(page,{
-  x: rightColX,
-  y: dificultadY - 16,
-  width: rightColWidth,
-  height: 16
+  x: rightColX + 115,   // ← lo movemos a la derecha
+  y: dificultadY - 4,   // ← casi misma altura que texto
+  width: 80,
+  height: 14
 });
 
 page.drawRectangle({
-  x: rightColX,
-  y: dificultadY - 16,
-  width: rightColWidth,
-  height: 16,
+  x: rightColX + 115,
+  y: dificultadY - 4,
+  width: 80,
+  height: 14,
   borderWidth: 0.5,
   borderColor: rgb(0,0,0)
 });
@@ -503,30 +486,32 @@ drawCenteredText(
     // CAMPO POR CARS (AL FINAL)
     // =================================================
 
-    page.drawText("POR CARS:",{
-      x: startX,
-      y: bottomTablesY - 20,
-      size: 9,
-      font: font
-    });
+    const quienY = bottomTablesY - 20;
 
-    const porCarsField = form.createTextField("porCars");
-    porCarsField.setText(data.quien || "");
-    porCarsField.addToPage(page,{
-      x: startX,
-      y: bottomTablesY - 36,
-      width: 200,
-      height: 16
-    });
+page.drawText("POR CARS:", {
+  x: startX,
+  y: quienY,
+  size: 9,
+  font: font
+});
 
-    page.drawRectangle({
-      x: startX,
-      y: bottomTablesY - 36,
-      width: 200,
-      height: 16,
-      borderWidth: 0.5,
-      borderColor: rgb(0,0,0)
-    });
+const quienField = form.createTextField("quien");
+quienField.setText(data.quien || "");
+quienField.addToPage(page,{
+  x: startX + 65,
+  y: quienY - 4,
+  width: 200,
+  height: 14
+});
+
+page.drawRectangle({
+  x: startX + 65,
+  y: quienY - 4,
+  width: 200,
+  height: 14,
+  borderWidth: 0.5,
+  borderColor: rgb(0,0,0)
+});
 
     // =================================================
     // GUARDAR
@@ -563,6 +548,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

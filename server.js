@@ -131,6 +131,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
   try {
 
     const data = req.body;
+    console.log("DATA RECIBIDA:", data);
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]);
@@ -266,7 +267,60 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
     }
 
-    drawRightField("Siniestro:", "siniestro", topY - 10);
+   // ================= Siniestro + Año =================
+
+const siniestroY = topY - 10;
+
+page.drawText("Siniestro:", {
+  x: rightColX,
+  y: siniestroY + 4,
+  size: 9,
+  font: font
+});
+
+const siniestroField = form.createTextField("siniestro");
+siniestroField.setText(data.siniestro1 || "");
+siniestroField.addToPage(page,{
+  x: rightColX,
+  y: siniestroY - 16,
+  width: 90,
+  height: 16
+});
+
+page.drawRectangle({
+  x: rightColX,
+  y: siniestroY - 16,
+  width: 90,
+  height: 16,
+  borderWidth: 0.5,
+  borderColor: rgb(0,0,0)
+});
+
+page.drawText("Año:", {
+  x: rightColX + 100,
+  y: siniestroY + 4,
+  size: 9,
+  font: font
+});
+
+const anioField = form.createTextField("anio");
+anioField.setText(data.siniestro2 || "");
+anioField.addToPage(page,{
+  x: rightColX + 100,
+  y: siniestroY - 16,
+  width: 50,
+  height: 16
+});
+
+page.drawRectangle({
+  x: rightColX + 100,
+  y: siniestroY - 16,
+  width: 50,
+  height: 16,
+  borderWidth: 0.5,
+  borderColor: rgb(0,0,0)
+});
+    
     drawRightField("Dificultad visual:", "dificultaVisual", topY - 60);
 
  
@@ -428,7 +482,7 @@ drawCenteredText(
     });
 
     const porCarsField = form.createTextField("porCars");
-    porCarsField.setText(data.porCars || "");
+    porCarsField.setText(data.QUIEN || "");
     porCarsField.addToPage(page,{
       x: startX,
       y: bottomTablesY - 36,
@@ -480,6 +534,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

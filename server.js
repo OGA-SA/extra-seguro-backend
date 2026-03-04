@@ -321,15 +321,16 @@ page.drawRectangle({
   borderColor: rgb(0,0,0)
 });
 
-//   =============================================
+
+// =============================================
 //         DIFICULTAD VISUAL
-//   =============================================
+// =============================================
 
-    const siniestroY = topY - 10;
+const dificultadY = siniestroY - 50; // lo bajamos debajo de siniestro
 
-page.drawText("¿Dificulta visual?:", {
+page.drawText("¿Dificultad visual?:", {
   x: rightColX,
-  y: siniestroY + 4,
+  y: dificultadY + 4,
   size: 9,
   font: font
 });
@@ -338,21 +339,19 @@ const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
 dificultadVisualField.addToPage(page,{
   x: rightColX,
-  y: siniestroY - 16,
-  width: 90,
+  y: dificultadY - 16,
+  width: rightColWidth,
   height: 16
 });
 
 page.drawRectangle({
   x: rightColX,
-  y: dificultadVisual - 16,
-  width: 90,
+  y: dificultadY - 16,
+  width: rightColWidth,
   height: 16,
   borderWidth: 0.5,
   borderColor: rgb(0,0,0)
 });
-
-    
  
 // =================================================
 // TEXTO INFORMATIVO (CENTRADO REAL)
@@ -564,6 +563,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

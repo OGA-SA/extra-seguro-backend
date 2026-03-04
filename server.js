@@ -283,14 +283,14 @@ page.drawText("Siniestro:", {
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
 siniestroField.addToPage(page,{
-  x: rightColX + 55,
+  x: rightColX + 50,
   y: fila1Y - 4,
-  width: 60,
+  width: 55,
   height: 14
 });
 
 page.drawText("Año:", {
-  x: rightColX + 130,
+  x: rightColX,
   y: fila1Y,
   size: 9,
   font: font
@@ -299,9 +299,9 @@ page.drawText("Año:", {
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
-  x: rightColX + 130,
+  x: rightColX + 120,
   y: fila1Y - 4,
-  width: 50,
+  width: 45,
   height: 14
 });
 
@@ -548,6 +548,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

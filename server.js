@@ -4,6 +4,8 @@ const fetch = require("node-fetch");
 const qs = require("querystring");
 const cors = require("cors");
 const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const upload = multer();
@@ -153,32 +155,40 @@ app.post("/generate-pdf-editable", async (req, res) => {
     // HEADER
     // =================================================
 
-    if(data.logoCars){
-      const img = await pdfDoc.embedJpg(Buffer.from(data.logoCars,"base64"));
-      page.drawImage(img,{
-        x: 40,
-        y: 780,
-        width: 90,
-        height: 35
+    const logoPath = path.join(__dirname, "cars.jpg");
+    const logoBytes = fs.readFileSync(logoPath);
+
+    const logoImage = await pdfDoc.embedJpg(logoBytes);
+
+    page.drawImage(logoImage,{
+      x: 40,
+      y: 775,
+      width: 90,
+      height: 35
+    });
+
+      const titulo = "FORMULARIO EXTRA SEGURO";
+      const tituloSize = 12;
+      
+      const tituloWidth = fontBold.widthOfTextAtSize(titulo, tituloSize);
+      
+      const tituloX = startX + (totalTablesWidth - tituloWidth) / 2;
+      
+      page.drawText(titulo, {
+        x: tituloX,
+        y: 794,
+        size: tituloSize,
+        font: fontBold,
+        color: rgb(0,0,0)
       });
-    }
 
     page.drawRectangle({
-      x: 150,
-      y: 790,
-      width: 300,
-      height: 20,
-      color: rgb(0.9,0.9,0.9)
-    });
-
-    page.drawText("FORMULARIO EXTRA SEGURO", {
-      x: 170,
-      y: 794,
-      size: 12,
-      font: fontBold,
-      color: rgb(0,0,0)
-    });
-
+        x: startX,
+        y: 790,
+        width: totalTablesWidth,
+        height: 20,
+        color: rgb(0.9,0.9,0.9)
+      });
     // =================================================
     // CAMPOS SUPERIORES
     // =================================================
@@ -285,7 +295,7 @@ page.drawText("Siniestro:", {
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
 siniestroField.addToPage(page,{
-  x: rightColX + 55,
+  x: rightColX + 45,
   y: fila1Y - 4,
   width: 55,
   height: 14
@@ -302,7 +312,7 @@ page.drawText("Año:", {
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
-  x: rightColX + 155,
+  x: rightColX + 145,
   y: fila1Y - 4,
   width: 45,
   height: 14
@@ -324,14 +334,14 @@ page.drawText("¿Dificultad visual?:", {
 const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
 dificultadVisualField.addToPage(page,{
-  x: rightColX + 115,
+  x: rightColX + 100,
   y: dificultadY - 4,
   width: 85,   // ← ajustado para que termine en mismo margen que Año
   height: 14
 });
 
 page.drawRectangle({
-  x: rightColX + 115,
+  x: rightColX + 100,
   y: dificultadY - 4,
   width: 85,
   height: 14,
@@ -551,6 +561,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

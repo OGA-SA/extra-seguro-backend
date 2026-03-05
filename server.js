@@ -286,31 +286,43 @@ if (fs.existsSync(logoPath)) {
     }
 
 // =============================================
-//     SINIESTRO + AÑO (MISMA FILA)
+//     SINIESTRO + AÑO (MISMA FILA - BORDE ÚNICO)
 // =============================================
 
-
 const fila1Y = topY - 20;
+const filaHeight = 16;
+const filaWidth = 170;
 
-// SINIESTRO
-page.drawText("Siniestro:", {
+// BORDE GENERAL
+page.drawRectangle({
   x: rightColX,
+  y: fila1Y - 6,
+  width: filaWidth,
+  height: filaHeight,
+  borderWidth: 0.5,
+  borderColor: rgb(0,0,0)
+});
+
+// TEXTO SINIESTRO
+page.drawText("Siniestro:", {
+  x: rightColX + 4,
   y: fila1Y,
   size: 9,
   font: font
 });
 
+// CAMPO SINIESTRO (SIN BORDE)
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
 siniestroField.addToPage(page,{
-  x: rightColX + 45,
+  x: rightColX + 50,
   y: fila1Y - 4,
-  width: 55,
-  height: 14
+  width: 45,
+  height: 14,
+  borderWidth: 0
 });
 
-// AÑO
-// AÑO
+// TEXTO AÑO
 page.drawText("Año:", {
   x: rightColX + 100,
   y: fila1Y,
@@ -318,53 +330,53 @@ page.drawText("Año:", {
   font: font
 });
 
+// CAMPO AÑO (SIN BORDE)
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
   x: rightColX + 125,
   y: fila1Y - 4,
-  width: 40,
-  height: 14
+  width: 35,
+  height: 14,
+  borderWidth: 0
 });
-    
 // =============================================
-//         DIFICULTAD VISUAL ALINEADO
-// =============================================
-  // =============================================
-//         DIFICULTAD VISUAL
+//         DIFICULTAD VISUAL (BORDE COMPLETO)
 // =============================================
 
 const dificultadY = fila1Y - 35;
+const dificultadWidth = startX + totalTablesWidth - rightColX;
 
-page.drawText("¿Dificultad visual?:", {
+// BORDE GENERAL
+page.drawRectangle({
   x: rightColX,
+  y: dificultadY - 6,
+  width: dificultadWidth,
+  height: 16,
+  borderWidth: 0.5,
+  borderColor: rgb(0,0,0)
+});
+
+// TEXTO
+page.drawText("¿Dificultad visual?:", {
+  x: rightColX + 4,
   y: dificultadY,
   size: 9,
   font: font
 });
 
-const dificultadStartX = rightColX + 95;
-const dificultadWidth = (startX + totalTablesWidth) - dificultadStartX;
-
+// CAMPO SIN BORDE
 const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
 
 dificultadVisualField.addToPage(page,{
-  x: dificultadStartX,
+  x: rightColX + 105,
   y: dificultadY - 4,
-  width: dificultadWidth,
-  height: 14
-});
-
-page.drawRectangle({
-  x: dificultadStartX,
-  y: dificultadY - 4,
-  width: dificultadWidth,
+  width: dificultadWidth - 110,
   height: 14,
-  borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
+  borderWidth: 0
 });
- 
+    
 // =================================================
 // TEXTO INFORMATIVO (CENTRADO REAL)
 // =================================================
@@ -580,6 +592,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

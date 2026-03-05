@@ -377,8 +377,8 @@ dificultadVisualField.addToPage(page,{
 
 
     // =================================================
-    // TABLAS
-    // =================================================
+// TABLAS
+// =================================================
 
 function drawTabla(tabla,startX,startY){
 
@@ -389,7 +389,6 @@ function drawTabla(tabla,startX,startY){
   let y = startY;
 
   // HEADERS
-
   headers.forEach((h,i)=>{
 
     const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0);
@@ -415,7 +414,6 @@ function drawTabla(tabla,startX,startY){
   y -= rowH;
 
   // FILAS
-
   (tabla || []).forEach((row,i)=>{
 
     const vals = [row.pieza,row.chapa,row.pintura];
@@ -458,9 +456,22 @@ function drawTabla(tabla,startX,startY){
 
 }
 
-    // =============================================
-    // POR CARS
-    // =============================================
+
+// =================================================
+// DIBUJAR TABLAS
+// =================================================
+
+const tableStartY = 415;
+
+const endY1 = drawTabla(data.tabla1, startX, tableStartY);
+const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
+
+const bottomTablesY = Math.min(endY1,endY2);
+
+
+// =============================================
+// POR CARS
+// =============================================
 
 const quienY = bottomTablesY - 20;
 
@@ -491,7 +502,6 @@ page.drawLine({
   end:{x:quienStartX+quienWidth,y:quienY-2},
   thickness:0.8
 });
-
 
     // =================================================
     // GUARDAR
@@ -535,6 +545,7 @@ app.listen(PORT,()=>{
   console.log("Servidor corriendo en puerto",PORT);
 
 });
+
 
 
 

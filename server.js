@@ -310,8 +310,9 @@ siniestroField.addToPage(page,{
 });
 
 // AÑO
+// AÑO
 page.drawText("Año:", {
-  x: rightColX + 120,   // ← lo movemos a la derecha
+  x: rightColX + 100,
   y: fila1Y,
   size: 9,
   font: font
@@ -320,9 +321,9 @@ page.drawText("Año:", {
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
-  x: rightColX + 145,
+  x: rightColX + 125,
   y: fila1Y - 4,
-  width: 45,
+  width: 40,
   height: 14
 });
     
@@ -330,32 +331,27 @@ anioField.addToPage(page,{
 //         DIFICULTAD VISUAL ALINEADO
 // =============================================
 
-const dificultadY = fila1Y - 35;
-
-page.drawText("¿Dificultad visual?:", {
-  x: rightColX,
-  y: dificultadY,
-  size: 9,
-  font: font
-});
-
-const dificultadVisualField = form.createTextField("dificultadVisual");
-dificultadVisualField.setText(data.dificultadVisual || "");
-dificultadVisualField.addToPage(page,{
-  x: rightColX + 100,
-  y: dificultadY - 4,
-  width: 85,   // ← ajustado para que termine en mismo margen que Año
-  height: 14
-});
-
-page.drawRectangle({
-  x: rightColX + 100,
-  y: dificultadY - 4,
-  width: 85,
-  height: 14,
-  borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
-});
+  const dificultadVisualField = form.createTextField("dificultadVisual");
+  dificultadVisualField.setText(data.dificultadVisual || "");
+  
+  const dificultadStartX = rightColX + 95;
+  const dificultadWidth = (startX + totalTablesWidth) - dificultadStartX;
+  
+  dificultadVisualField.addToPage(page,{
+    x: dificultadStartX,
+    y: dificultadY - 4,
+    width: dificultadWidth,
+    height: 14
+  });
+  
+  page.drawRectangle({
+    x: dificultadStartX,
+    y: dificultadY - 4,
+    width: dificultadWidth,
+    height: 14,
+    borderWidth: 0.5,
+    borderColor: rgb(0,0,0)
+  });
  
 // =================================================
 // TEXTO INFORMATIVO (CENTRADO REAL)
@@ -569,6 +565,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

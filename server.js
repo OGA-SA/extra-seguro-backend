@@ -286,17 +286,17 @@ if (fs.existsSync(logoPath)) {
     }
 
 // =============================================
-//     SINIESTRO + AÑO (MISMA FILA - BORDE ÚNICO)
+//     SINIESTRO + AÑO (BORDE ÚNICO)
 // =============================================
 
 const fila1Y = topY - 20;
-const filaHeight = 16;
+const filaHeight = 20;
 const filaWidth = 170;
 
 // BORDE GENERAL
 page.drawRectangle({
   x: rightColX,
-  y: fila1Y - 6,
+  y: fila1Y - 8,
   width: filaWidth,
   height: filaHeight,
   borderWidth: 0.5,
@@ -311,14 +311,14 @@ page.drawText("Siniestro:", {
   font: font
 });
 
-// CAMPO SINIESTRO (SIN BORDE)
+// CAMPO SIN BORDE
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
 siniestroField.addToPage(page,{
   x: rightColX + 50,
-  y: fila1Y - 4,
+  y: fila1Y - 5,
   width: 45,
-  height: 14,
+  height: 12,
   borderWidth: 0
 });
 
@@ -330,18 +330,20 @@ page.drawText("Año:", {
   font: font
 });
 
-// CAMPO AÑO (SIN BORDE)
+// CAMPO AÑO
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
   x: rightColX + 125,
-  y: fila1Y - 4,
+  y: fila1Y - 5,
   width: 35,
-  height: 14,
+  height: 12,
   borderWidth: 0
 });
+    
+
 // =============================================
-//         DIFICULTAD VISUAL (BORDE COMPLETO)
+//         DIFICULTAD VISUAL
 // =============================================
 
 const dificultadY = fila1Y - 35;
@@ -350,9 +352,9 @@ const dificultadWidth = startX + totalTablesWidth - rightColX;
 // BORDE GENERAL
 page.drawRectangle({
   x: rightColX,
-  y: dificultadY - 6,
+  y: dificultadY - 8,
   width: dificultadWidth,
-  height: 16,
+  height: 20,
   borderWidth: 0.5,
   borderColor: rgb(0,0,0)
 });
@@ -371,9 +373,9 @@ dificultadVisualField.setText(data.dificultadVisual || "");
 
 dificultadVisualField.addToPage(page,{
   x: rightColX + 105,
-  y: dificultadY - 4,
+  y: dificultadY - 5,
   width: dificultadWidth - 110,
-  height: 14,
+  height: 12,
   borderWidth: 0
 });
     
@@ -592,6 +594,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

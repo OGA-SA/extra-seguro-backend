@@ -524,19 +524,22 @@ page.drawText("POR CARS:", {
   font: font
 });
 
+const quienStartX = startX + 65;
+const quienWidth = 140;
+
 const quienField = form.createTextField("quien");
 quienField.setText(data.quien || "");
 quienField.addToPage(page,{
-  x: startX + 65,
+  x: quienStartX,
   y: quienY - 4,
-  width: 200,
+  width: quienWidth,
   height: 14
 });
 
 page.drawRectangle({
-  x: startX + 50,
+  x: quienStartX,
   y: quienY - 4,
-  width: 200,
+  width: quienWidth,
   height: 14,
   borderWidth: 0.5,
   borderColor: rgb(0,0,0)
@@ -577,6 +580,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

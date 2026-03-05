@@ -562,43 +562,35 @@ height: 14,
 borderWidth: 0.5,
 borderColor: rgb(0,0,0)
 });
-
 // =================================================
 // GUARDAR
 // =================================================
 
 const pdfBytes = await pdfDoc.save();
 
-const token = await getAccessToken();
-const filename = `editable_${Date.now()}.pdf`;
-
-const result = await uploadToSharePoint(
-token,
-Buffer.from(pdfBytes),
-filename,
-DEFAULT_FOLDER
+res.setHeader("Content-Type", "application/pdf");
+res.setHeader(
+  "Content-Disposition",
+  `attachment; filename="editable_${Date.now()}.pdf"`
 );
 
-res.json({
-ok:true,
-name: filename,
-webUrl: result.webUrl
+res.send(Buffer.from(pdfBytes));
+
+} catch (err) {
+  console.error(err);
+  res.status(500).json({ error: err.message });
+}
+
 });
 
-} catch (err){
-console.error(err);
-res.status(500).json({ error: err.message });
-}
-});
 
 // ================= START SERVER =================
 
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
-console.log("Servidor corriendo en puerto", PORT);
+  console.log("Servidor corriendo en puerto", PORT);
 });
-
 
 
 

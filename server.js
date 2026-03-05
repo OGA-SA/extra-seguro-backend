@@ -383,9 +383,38 @@ dificultadVisualField.addToPage(page,{
 function drawTabla(tabla,startX,startY){
 
   const colW = [140,50,50];
+  const headers = ["PIEZA","CHAPA","PINTURA"];
   const rowH = 16;
 
   let y = startY;
+
+  // HEADERS
+
+  headers.forEach((h,i)=>{
+
+    const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0);
+
+    page.drawRectangle({
+      x,
+      y,
+      width:colW[i],
+      height:rowH,
+      color:rgb(0.9,0.9,0.9),
+      borderWidth:0.5
+    });
+
+    page.drawText(h,{
+      x:x+4,
+      y:y+4,
+      size:8,
+      font:fontBold
+    });
+
+  });
+
+  y -= rowH;
+
+  // FILAS
 
   (tabla || []).forEach((row,i)=>{
 
@@ -399,6 +428,10 @@ function drawTabla(tabla,startX,startY){
 
       f.setText(val || "");
       f.setBorderWidth(0);
+
+      if(c===0){
+        f.setAlignment(0);
+      }
 
       f.addToPage(page,{
         x,
@@ -424,14 +457,6 @@ function drawTabla(tabla,startX,startY){
   return y;
 
 }
-
-const tableStartY = 415;
-
-const endY1 = drawTabla(data.tabla1,startX,tableStartY);
-const endY2 = drawTabla(data.tabla2,startX + tableWidth + gap,tableStartY);
-
-const bottomTablesY = Math.min(endY1,endY2);
-
 
     // =============================================
     // POR CARS
@@ -510,6 +535,7 @@ app.listen(PORT,()=>{
   console.log("Servidor corriendo en puerto",PORT);
 
 });
+
 
 
 

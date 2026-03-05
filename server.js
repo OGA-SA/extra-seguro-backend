@@ -43,7 +43,7 @@ app.get("/", (req,res)=>res.send("✅ Backend funcionando"));
 
 // ================= TOKEN =================
 
-async function getAccessToken() {
+async function getAccessToken(){
 
   const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
 
@@ -71,7 +71,7 @@ async function getAccessToken() {
 
 // ================= SHAREPOINT UPLOAD =================
 
-async function uploadToSharePoint(accessToken, buffer, filename, folder){
+async function uploadToSharePoint(accessToken,buffer,filename,folder){
 
   const safeFolder = encodeURI(folder);
   const safeName = encodeURIComponent(filename);
@@ -155,10 +155,6 @@ app.post("/generate-pdf-editable", async (req,res)=>{
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
 
-    // =================================================
-    // VARIABLES DISEÑO
-    // =================================================
-
     const tableWidth = 240;
     const gap = 20;
 
@@ -238,14 +234,12 @@ function drawLabelField(label,name,x,y,width){
   const f = form.createTextField(name);
 
   f.setText(data[name] || "");
-  f.setTextColor(rgb(0,0,0));
 
   f.addToPage(page,{
     x:x+60,
     y:y-5,
     width:width,
-    height:12,
-    borderWidth:0
+    height:12
   });
 
 }
@@ -315,14 +309,12 @@ page.drawText("Siniestro:",{
 const siniestroField = form.createTextField("siniestro");
 
 siniestroField.setText(data.siniestro1 || "");
-siniestroField.setTextColor(rgb(0,0,0));
 
 siniestroField.addToPage(page,{
   x:rightColX+50,
   y:fila1Y-5,
   width:45,
-  height:12,
-  borderWidth:0
+  height:12
 });
 
 
@@ -336,56 +328,18 @@ page.drawText("Año:",{
 const anioField = form.createTextField("anio");
 
 anioField.setText(data.siniestro2 || "");
-anioField.setTextColor(rgb(0,0,0));
 
 anioField.addToPage(page,{
   x:rightColX+125,
   y:fila1Y-5,
   width:35,
-  height:12,
-  borderWidth:0
+  height:12
 });
 
 
     // =============================================
-    // DIFICULTAD VISUAL
-    // =============================================
-
-const dificultadY = fila1Y - 35;
-const dificultadWidth = startX + totalTablesWidth - rightColX;
-
-page.drawRectangle({
-  x:rightColX,
-  y:dificultadY-8,
-  width:dificultadWidth,
-  height:20,
-  borderWidth:0.5
-});
-
-page.drawText("¿Dificultad visual?:",{
-  x:rightColX+4,
-  y:dificultadY,
-  size:9,
-  font
-});
-
-const dificultadVisualField = form.createTextField("dificultadVisual");
-
-dificultadVisualField.setText(data.dificultadVisual || "");
-dificultadVisualField.setTextColor(rgb(0,0,0));
-
-dificultadVisualField.addToPage(page,{
-  x:rightColX+105,
-  y:dificultadY-5,
-  width:dificultadWidth-110,
-  height:12,
-  borderWidth:0
-});
-
-
-    // =================================================
     // TABLAS
-    // =================================================
+    // =============================================
 
 function drawTabla(tabla,startX,startY){
 
@@ -435,8 +389,7 @@ function drawTabla(tabla,startX,startY){
         x,
         y,
         width:colW[c],
-        height:rowH,
-        borderWidth:0
+        height:rowH
       });
 
       page.drawRectangle({
@@ -456,7 +409,6 @@ function drawTabla(tabla,startX,startY){
   return y;
 
 }
-
 
 const tableStartY = 415;
 
@@ -490,8 +442,7 @@ quienField.addToPage(page,{
   x:quienStartX,
   y:quienY-4,
   width:quienWidth,
-  height:14,
-  borderWidth:0
+  height:14
 });
 
 page.drawLine({
@@ -543,6 +494,7 @@ app.listen(PORT,()=>{
   console.log("Servidor corriendo en puerto",PORT);
 
 });
+
 
 
 

@@ -330,28 +330,40 @@ anioField.addToPage(page,{
 // =============================================
 //         DIFICULTAD VISUAL ALINEADO
 // =============================================
+  // =============================================
+//         DIFICULTAD VISUAL
+// =============================================
 
-  const dificultadVisualField = form.createTextField("dificultadVisual");
-  dificultadVisualField.setText(data.dificultadVisual || "");
-  
-  const dificultadStartX = rightColX + 95;
-  const dificultadWidth = (startX + totalTablesWidth) - dificultadStartX;
-  
-  dificultadVisualField.addToPage(page,{
-    x: dificultadStartX,
-    y: dificultadY - 4,
-    width: dificultadWidth,
-    height: 14
-  });
-  
-  page.drawRectangle({
-    x: dificultadStartX,
-    y: dificultadY - 4,
-    width: dificultadWidth,
-    height: 14,
-    borderWidth: 0.5,
-    borderColor: rgb(0,0,0)
-  });
+const dificultadY = fila1Y - 35;
+
+page.drawText("¿Dificultad visual?:", {
+  x: rightColX,
+  y: dificultadY,
+  size: 9,
+  font: font
+});
+
+const dificultadStartX = rightColX + 95;
+const dificultadWidth = (startX + totalTablesWidth) - dificultadStartX;
+
+const dificultadVisualField = form.createTextField("dificultadVisual");
+dificultadVisualField.setText(data.dificultadVisual || "");
+
+dificultadVisualField.addToPage(page,{
+  x: dificultadStartX,
+  y: dificultadY - 4,
+  width: dificultadWidth,
+  height: 14
+});
+
+page.drawRectangle({
+  x: dificultadStartX,
+  y: dificultadY - 4,
+  width: dificultadWidth,
+  height: 14,
+  borderWidth: 0.5,
+  borderColor: rgb(0,0,0)
+});
  
 // =================================================
 // TEXTO INFORMATIVO (CENTRADO REAL)
@@ -565,6 +577,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

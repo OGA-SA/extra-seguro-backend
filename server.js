@@ -166,12 +166,21 @@ app.post("/generate-pdf-editable", async (req, res) => {
       width: 90,
       height: 35
     });
-
+     // =================================================
+    // FORMULARIO EXTRA SEGURO
+    // =================================================
+            page.drawRectangle({
+        x: startX,
+        y: 790,
+        width: totalTablesWidth,
+        height: 20,
+        color: rgb(0.9,0.9,0.9)
+      });
+      
       const titulo = "FORMULARIO EXTRA SEGURO";
       const tituloSize = 12;
       
       const tituloWidth = fontBold.widthOfTextAtSize(titulo, tituloSize);
-      
       const tituloX = startX + (totalTablesWidth - tituloWidth) / 2;
       
       page.drawText(titulo, {
@@ -180,14 +189,6 @@ app.post("/generate-pdf-editable", async (req, res) => {
         size: tituloSize,
         font: fontBold,
         color: rgb(0,0,0)
-      });
-
-    page.drawRectangle({
-        x: startX,
-        y: 790,
-        width: totalTablesWidth,
-        height: 20,
-        color: rgb(0.9,0.9,0.9)
       });
     // =================================================
     // CAMPOS SUPERIORES
@@ -561,6 +562,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

@@ -146,10 +146,13 @@ app.post("/generate-pdf-editable", async (req, res) => {
     // VARIABLES DE DISEÑO
     // =================================================
 
-    const tableWidth = 240;
-    const gap = 20;
-    const startX = 40;
-    const totalTablesWidth = tableWidth * 2 + gap;
+   const tableWidth = 240;
+  const gap = 20;
+
+  const totalTablesWidth = tableWidth * 2 + gap;
+
+  const pageWidth = 595;
+  const startX = (pageWidth - totalTablesWidth) / 2;
 
     // =================================================
     // HEADER
@@ -566,6 +569,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

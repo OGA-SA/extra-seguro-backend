@@ -44,6 +44,7 @@ app.get("/", (req,res)=>res.send("✅ Backend funcionando"));
 // ================= TOKEN =================
 
 async function getAccessToken() {
+
   const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
 
   const body = qs.stringify({
@@ -53,43 +54,47 @@ async function getAccessToken() {
     grant_type: "client_credentials",
   });
 
-  const r = await fetch(tokenUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
+  const r = await fetch(tokenUrl,{
+    method:"POST",
+    headers:{ "Content-Type":"application/x-www-form-urlencoded" },
+    body
   });
 
   const data = await r.json();
-  if (!r.ok) throw new Error(JSON.stringify(data));
+
+  if(!r.ok) throw new Error(JSON.stringify(data));
+
   return data.access_token;
+
 }
 
 
 // ================= SHAREPOINT UPLOAD =================
 
-async function uploadToSharePoint(accessToken, buffer, filename, folder) {
+async function uploadToSharePoint(accessToken, buffer, filename, folder){
 
   const safeFolder = encodeURI(folder);
   const safeName = encodeURIComponent(filename);
 
   const uploadUrl =
-    `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
+  `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
 
-  const res = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/pdf"
+  const res = await fetch(uploadUrl,{
+    method:"PUT",
+    headers:{
+      Authorization:`Bearer ${accessToken}`,
+      "Content-Type":"application/pdf"
     },
-    body: buffer
+    body:buffer
   });
 
-  if (!res.ok) {
+  if(!res.ok){
     const text = await res.text();
     throw new Error(text);
   }
 
   return res.json();
+
 }
 
 
@@ -97,12 +102,12 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
 // ================= ENDPOINT ORIGINAL =================
 // =====================================================
 
-app.post("/upload", upload.single("pdf"), async (req, res) => {
+app.post("/upload", upload.single("pdf"), async (req,res)=>{
 
-  try {
+  try{
 
-    if (!req.file) {
-      return res.status(400).json({ error: "Falta pdf" });
+    if(!req.file){
+      return res.status(400).json({ error:"Falta pdf" });
     }
 
     const filename = req.file.originalname;
@@ -117,15 +122,15 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
     );
 
     res.json({
-      ok: true,
-      webUrl: result.webUrl,
-      name: result.name
+      ok:true,
+      webUrl:result.webUrl,
+      name:result.name
     });
 
-  } catch (e) {
+  }catch(e){
 
     console.error(e);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error:e.message });
 
   }
 
@@ -136,9 +141,9 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 // ================= PDF EDITABLE ======================
 // =====================================================
 
-app.post("/generate-pdf-editable", async (req, res) => {
+app.post("/generate-pdf-editable", async (req,res)=>{
 
-  try {
+  try{
 
     const data = req.body;
 
@@ -149,16 +154,19 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+
     // =================================================
-    // VARIABLES DE DISEÑO
+    // VARIABLES DISEÑO
     // =================================================
 
     const tableWidth = 240;
     const gap = 20;
-    const totalTablesWidth = tableWidth * 2 + gap;
+
+    const totalTablesWidth = tableWidth*2 + gap;
 
     const pageWidth = 595;
-    const startX = (pageWidth - totalTablesWidth) / 2;
+
+    const startX = (pageWidth-totalTablesWidth)/2;
 
 
     // =================================================
@@ -217,8 +225,7 @@ function drawLabelField(label,name,x,y,width){
     y:y-8,
     width:boxWidth,
     height:boxHeight,
-    borderWidth:0.5,
-    borderColor:rgb(0,0,0)
+    borderWidth:0.5
   });
 
   page.drawText(label,{
@@ -231,14 +238,14 @@ function drawLabelField(label,name,x,y,width){
   const f = form.createTextField(name);
 
   f.setText(data[name] || "");
-  f.setBorderWidth(0);
   f.setTextColor(rgb(0,0,0));
 
   f.addToPage(page,{
     x:x+60,
     y:y-5,
     width:width,
-    height:12
+    height:12,
+    borderWidth:0
   });
 
 }
@@ -249,7 +256,7 @@ drawLabelField("Fecha:","fecha",startX+340,750,80);
 
 
     // =================================================
-    // BLOQUE IMAGEN
+    // IMAGEN
     // =================================================
 
     const leftColX = startX;
@@ -308,14 +315,14 @@ page.drawText("Siniestro:",{
 const siniestroField = form.createTextField("siniestro");
 
 siniestroField.setText(data.siniestro1 || "");
-siniestroField.setBorderWidth(0);
 siniestroField.setTextColor(rgb(0,0,0));
 
 siniestroField.addToPage(page,{
   x:rightColX+50,
   y:fila1Y-5,
   width:45,
-  height:12
+  height:12,
+  borderWidth:0
 });
 
 
@@ -329,14 +336,14 @@ page.drawText("Año:",{
 const anioField = form.createTextField("anio");
 
 anioField.setText(data.siniestro2 || "");
-anioField.setBorderWidth(0);
 anioField.setTextColor(rgb(0,0,0));
 
 anioField.addToPage(page,{
   x:rightColX+125,
   y:fila1Y-5,
   width:35,
-  height:12
+  height:12,
+  borderWidth:0
 });
 
 
@@ -365,20 +372,20 @@ page.drawText("¿Dificultad visual?:",{
 const dificultadVisualField = form.createTextField("dificultadVisual");
 
 dificultadVisualField.setText(data.dificultadVisual || "");
-dificultadVisualField.setBorderWidth(0);
 dificultadVisualField.setTextColor(rgb(0,0,0));
 
 dificultadVisualField.addToPage(page,{
   x:rightColX+105,
   y:dificultadY-5,
   width:dificultadWidth-110,
-  height:12
+  height:12,
+  borderWidth:0
 });
 
 
     // =================================================
-// TABLAS
-// =================================================
+    // TABLAS
+    // =================================================
 
 function drawTabla(tabla,startX,startY){
 
@@ -388,7 +395,6 @@ function drawTabla(tabla,startX,startY){
 
   let y = startY;
 
-  // HEADERS
   headers.forEach((h,i)=>{
 
     const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0);
@@ -413,7 +419,6 @@ function drawTabla(tabla,startX,startY){
 
   y -= rowH;
 
-  // FILAS
   (tabla || []).forEach((row,i)=>{
 
     const vals = [row.pieza,row.chapa,row.pintura];
@@ -425,17 +430,13 @@ function drawTabla(tabla,startX,startY){
       const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
 
       f.setText(val || "");
-      f.setBorderWidth(0);
-
-      if(c===0){
-        f.setAlignment(0);
-      }
 
       f.addToPage(page,{
         x,
         y,
         width:colW[c],
-        height:rowH
+        height:rowH,
+        borderWidth:0
       });
 
       page.drawRectangle({
@@ -457,21 +458,17 @@ function drawTabla(tabla,startX,startY){
 }
 
 
-// =================================================
-// DIBUJAR TABLAS
-// =================================================
-
 const tableStartY = 415;
 
-const endY1 = drawTabla(data.tabla1, startX, tableStartY);
-const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
+const endY1 = drawTabla(data.tabla1,startX,tableStartY);
+const endY2 = drawTabla(data.tabla2,startX + tableWidth + gap,tableStartY);
 
 const bottomTablesY = Math.min(endY1,endY2);
 
 
-// =============================================
-// POR CARS
-// =============================================
+    // =============================================
+    // POR CARS
+    // =============================================
 
 const quienY = bottomTablesY - 20;
 
@@ -488,13 +485,13 @@ const quienWidth = 140;
 const quienField = form.createTextField("quien");
 
 quienField.setText(data.quien || "");
-quienField.setBorderWidth(0);
 
 quienField.addToPage(page,{
   x:quienStartX,
   y:quienY-4,
   width:quienWidth,
-  height:14
+  height:14,
+  borderWidth:0
 });
 
 page.drawLine({
@@ -502,6 +499,7 @@ page.drawLine({
   end:{x:quienStartX+quienWidth,y:quienY-2},
   thickness:0.8
 });
+
 
     // =================================================
     // GUARDAR
@@ -526,7 +524,7 @@ page.drawLine({
       webUrl:result.webUrl
     });
 
-  } catch(err){
+  }catch(err){
 
     console.error(err);
     res.status(500).json({error:err.message});

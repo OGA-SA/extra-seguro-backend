@@ -504,7 +504,7 @@ drawCenteredText(
       return y;
     }
 
-    const tableStartY = 440;
+    const tableStartY = 415;
 
     const endY1 = drawTabla(data.tabla1, startX, tableStartY);
     const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
@@ -534,7 +534,7 @@ quienField.addToPage(page,{
 });
 
 page.drawRectangle({
-  x: startX + 65,
+  x: startX + 50,
   y: quienY - 4,
   width: 200,
   height: 14,
@@ -577,6 +577,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

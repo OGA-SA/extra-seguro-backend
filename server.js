@@ -516,13 +516,22 @@ res.set({
 
 res.end(pdfBuffer);
 
+} catch (err) {
+
+  console.error("ERROR GENERANDO PDF:", err);
+  res.status(500).send("Error generando PDF");
+
+}
+
+});   // ← ESTA LLAVE CIERRA app.post("/generate-pdf-editable")
+
 
 // ================= START SERVER =================
 
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT,()=>{
-console.log("Servidor corriendo en puerto",PORT);
+app.listen(PORT, () => {
+  console.log("Servidor corriendo en puerto", PORT);
 });
 
 

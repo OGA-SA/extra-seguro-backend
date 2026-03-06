@@ -17,6 +17,118 @@ app.get("/",(req,res)=>{
   res.send("✅ Backend funcionando");
 });
 
+// ================= ENV =================
+
+const TENANT_ID = process.env.TENANT_ID;
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const SITE_ID = process.env.SITE_ID;
+const DRIVE_ID = process.env.DRIVE_ID;
+
+const DEFAULT_FOLDER = process.env.FOLDER_PATH || "Extra Seguro";
+
+const allowedOrigins = (process.env.ALLOWED_ORIGIN || "")
+.split(",")
+.filter(Boolean);
+
+// ================= CORS =================
+
+app.use(cors({
+origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
+methods: ["POST","OPTIONS","GET"]
+}));
+
+app.options("*", cors());
+
+// ================= SANITY =================
+
+app.get("/", (req,res)=>res.send("✅ Backend funcionando"));
+
+
+// ================= TOKEN =================
+
+async function getAccessToken() {
+const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
+
+const body = qs.stringify({
+client_id: CLIENT_ID,
+client_secret: CLIENT_SECRET,
+scope: "https://graph.microsoft.com/.default",
+grant_type: "client_credentials",
+});
+
+const r = await fetch(tokenUrl, {
+method: "POST",
+headers: { "Content-Type": "application/x-www-form-urlencoded" },
+body,
+});
+
+const data = await r.json();
+if (!r.ok) throw new Error(JSON.stringify(data));
+return data.access_token;
+}
+
+
+// ================= SHAREPOINT UPLOAD =================
+
+async function uploadToSharePoint(accessToken, buffer, filename, folder) {
+const safeFolder = encodeURI(folder);
+const safeName = encodeURIComponent(filename);
+
+const uploadUrl =
+`https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
+
+const res = await fetch(uploadUrl, {
+method: "PUT",
+headers: {
+Authorization: `Bearer ${accessToken}`,
+"Content-Type": "application/pdf"
+},
+body: buffer
+});
+
+if (!res.ok) {
+const text = await res.text();
+throw new Error(text);
+}
+
+return res.json();
+}
+
+
+// =====================================================
+// ================= ENDPOINT ORIGINAL =================
+// =====================================================
+
+app.post("/upload", upload.single("pdf"), async (req, res) => {
+try {
+
+if (!req.file) {
+return res.status(400).json({ error: "Falta pdf" });
+}
+
+const filename = req.file.originalname;
+
+const token = await getAccessToken();
+const result = await uploadToSharePoint(
+token,
+req.file.buffer,
+filename,
+DEFAULT_FOLDER
+);
+
+res.json({
+ok: true,
+webUrl: result.webUrl,
+name: result.name
+});
+
+} catch (e) {
+console.error(e);
+res.status(500).json({ error: e.message });
+}
+});
+
 
 // =================================================
 // GENERAR PDF EDITABLE
@@ -421,6 +533,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT,()=>{
 console.log("Servidor corriendo en puerto",PORT);
 });
+
 
 
 

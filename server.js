@@ -498,10 +498,11 @@ height:14,
 borderWidth:0.5
 });
 
-
 // =================================================
 // GUARDAR
 // =================================================
+
+form.updateFieldAppearances(font);
 
 const pdfBytes = await pdfDoc.save();
 
@@ -513,15 +514,6 @@ res.setHeader(
 
 res.send(Buffer.from(pdfBytes));
 
-}catch(err){
-
-console.error(err);
-res.status(500).json({error:err.message});
-
-}
-
-});
-
 
 // ================= START SERVER =================
 
@@ -532,6 +524,7 @@ app.listen(PORT,()=>{
 console.log("Servidor corriendo en puerto",PORT);
 
 });
+
 
 
 

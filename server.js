@@ -514,16 +514,24 @@ res.setHeader(
 
 res.send(Buffer.from(pdfBytes));
 
+}catch(err){
+
+console.error(err);
+res.status(500).json({error:err.message});
+
+}
+
+});
+
 
 // ================= START SERVER =================
 
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT,()=>{
-
 console.log("Servidor corriendo en puerto",PORT);
-
 });
+
 
 
 

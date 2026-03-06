@@ -4,6 +4,8 @@ const cors = require("cors");
 const { PDFDocument, StandardFonts, rgb } = require("pdf-lib");
 const fs = require("fs");
 const path = require("path");
+const qs = require("qs");        // 👈 AGREGAR ESTA LINEA
+const fetch = require("node-fetch"); // 👈 y esta también si no está
 
 const app = express();
 const upload = multer();
@@ -533,6 +535,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT,()=>{
 console.log("Servidor corriendo en puerto",PORT);
 });
+
 
 
 

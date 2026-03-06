@@ -44,6 +44,7 @@ app.get("/", (req,res)=>res.send("✅ Backend funcionando"));
 // ================= TOKEN =================
 
 async function getAccessToken() {
+
 const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
 
 const body = qs.stringify({
@@ -53,42 +54,45 @@ scope: "https://graph.microsoft.com/.default",
 grant_type: "client_credentials",
 });
 
-const r = await fetch(tokenUrl, {
-method: "POST",
-headers: { "Content-Type": "application/x-www-form-urlencoded" },
-body,
+const r = await fetch(tokenUrl,{
+method:"POST",
+headers:{ "Content-Type":"application/x-www-form-urlencoded"},
+body
 });
 
 const data = await r.json();
-if (!r.ok) throw new Error(JSON.stringify(data));
+if(!r.ok) throw new Error(JSON.stringify(data));
 return data.access_token;
+
 }
 
 
 // ================= SHAREPOINT UPLOAD =================
 
-async function uploadToSharePoint(accessToken, buffer, filename, folder) {
+async function uploadToSharePoint(accessToken, buffer, filename, folder){
+
 const safeFolder = encodeURI(folder);
 const safeName = encodeURIComponent(filename);
 
 const uploadUrl =
 `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
 
-const res = await fetch(uploadUrl, {
-method: "PUT",
-headers: {
-Authorization: `Bearer ${accessToken}`,
-"Content-Type": "application/pdf"
+const res = await fetch(uploadUrl,{
+method:"PUT",
+headers:{
+Authorization:`Bearer ${accessToken}`,
+"Content-Type":"application/pdf"
 },
-body: buffer
+body:buffer
 });
 
-if (!res.ok) {
+if(!res.ok){
 const text = await res.text();
 throw new Error(text);
 }
 
 return res.json();
+
 }
 
 
@@ -96,16 +100,18 @@ return res.json();
 // ================= ENDPOINT ORIGINAL =================
 // =====================================================
 
-app.post("/upload", upload.single("pdf"), async (req, res) => {
-try {
+app.post("/upload", upload.single("pdf"), async (req,res)=>{
 
-if (!req.file) {
-return res.status(400).json({ error: "Falta pdf" });
+try{
+
+if(!req.file){
+return res.status(400).json({error:"Falta pdf"});
 }
 
 const filename = req.file.originalname;
 
 const token = await getAccessToken();
+
 const result = await uploadToSharePoint(
 token,
 req.file.buffer,
@@ -114,29 +120,35 @@ DEFAULT_FOLDER
 );
 
 res.json({
-ok: true,
-webUrl: result.webUrl,
-name: result.name
+ok:true,
+webUrl:result.webUrl,
+name:result.name
 });
 
-} catch (e) {
+}catch(e){
+
 console.error(e);
-res.status(500).json({ error: e.message });
+res.status(500).json({error:e.message});
+
 }
+
 });
+
 
 // =====================================================
 // ================= PDF EDITABLE ======================
 // =====================================================
 
-app.post("/generate-pdf-editable", async (req, res) => {
-try {
+app.post("/generate-pdf-editable", async (req,res)=>{
+
+try{
 
 const data = req.body;
-console.log("DATA RECIBIDA:", data);
+
+console.log("DATA RECIBIDA:",data);
 
 const pdfDoc = await PDFDocument.create();
-const page = pdfDoc.addPage([595, 842]);
+const page = pdfDoc.addPage([595,842]);
 const form = pdfDoc.getForm();
 
 const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -154,59 +166,74 @@ const totalTablesWidth = tableWidth * 2 + gap;
 const pageWidth = 595;
 const startX = (pageWidth - totalTablesWidth) / 2;
 
+
 // =================================================
 // HEADER
 // =================================================
 
-const logoPath = path.join(__dirname, "cars.jpg");
+const logoPath = path.join(__dirname,"cars.jpg");
 
-if (fs.existsSync(logoPath)) {
+if(fs.existsSync(logoPath)){
 
 const logoBytes = fs.readFileSync(logoPath);
 const logoImage = await pdfDoc.embedJpg(logoBytes);
 
 page.drawImage(logoImage,{
-x: startX,
-y: 775,
-width: 90,
-height: 35
+x:startX,
+y:775,
+width:90,
+height:35
 });
 
 }
+
+
 // =================================================
-// FORMULARIO EXTRA SEGURO
+// TITULO
 // =================================================
+
 page.drawRectangle({
-x: startX,
-y: 790,
-width: totalTablesWidth,
-height: 20,
-color: rgb(0.9,0.9,0.9)
+x:startX,
+y:790,
+width:totalTablesWidth,
+height:20,
+color:rgb(0.9,0.9,0.9)
 });
 
 const titulo = "FORMULARIO EXTRA SEGURO";
 const tituloSize = 12;
 
-const tituloWidth = fontBold.widthOfTextAtSize(titulo, tituloSize);
-const tituloX = startX + (totalTablesWidth - tituloWidth) / 2;
+const tituloWidth = fontBold.widthOfTextAtSize(titulo,tituloSize);
 
-page.drawText(titulo, {
-x: tituloX,
-y: 794,
-size: tituloSize,
-font: fontBold,
-color: rgb(0,0,0)
+const tituloX = startX + (totalTablesWidth - tituloWidth)/2;
+
+page.drawText(titulo,{
+x:tituloX,
+y:794,
+size:tituloSize,
+font:fontBold,
+color:rgb(0,0,0)
 });
+
+
 // =================================================
 // CAMPOS SUPERIORES
 // =================================================
 
-function drawLabelField(label, name, x, y, width){
-page.drawText(label,{ x, y: y+4, size:9, font });
+function drawLabelField(label,name,x,y,width){
+
+page.drawText(label,{x,y:y+4,size:9,font});
 
 const f = form.createTextField(name);
+
 f.setText(data[name] || "");
-f.addToPage(page,{ x:x+60, y, width, height:16 });
+
+f.addToPage(page,{
+x:x+60,
+y,
+width,
+height:16
+});
 
 page.drawRectangle({
 x:x+60,
@@ -214,295 +241,201 @@ y,
 width,
 height:16,
 borderWidth:0.5,
-borderColor: rgb(0,0,0)
+borderColor:rgb(0,0,0)
 });
+
 }
 
-drawLabelField("Taller N°:", "taller", startX, 750, 100);
-drawLabelField("Serie y N°:", "serieNumero", 210, 750, 100);
-drawLabelField("Fecha:", "fecha", 380, 750, 80);
+drawLabelField("Taller N°:","taller",startX,750,100);
+drawLabelField("Serie y N°:","serieNumero",210,750,100);
+drawLabelField("Fecha:","fecha",380,750,80);
+
 
 // =================================================
-// BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)
+// BLOQUE IMAGEN + CAMPOS
 // =================================================
 
 const leftColX = startX;
 const leftColWidth = 330;
 
 const rightColX = leftColX + leftColWidth + 15;
-const rightColWidth = 160;
 
 const topY = 700;
 const imageHeight = 170;
 
-// Imagen parabrisas
+
+// Imagen canvas
+
 if(data.canvasImage){
+
 const img = await pdfDoc.embedPng(
 Buffer.from(data.canvasImage.split(",")[1],"base64")
 );
 
 page.drawImage(img,{
-x: leftColX,
-y: topY - imageHeight,
-width: leftColWidth,
-height: imageHeight
+x:leftColX,
+y:topY-imageHeight,
+width:leftColWidth,
+height:imageHeight
 });
 
 page.drawRectangle({
-x: leftColX,
-y: topY - imageHeight,
-width: leftColWidth,
-height: imageHeight,
-borderWidth: 0.5,
-borderColor: rgb(0,0,0)
+x:leftColX,
+y:topY-imageHeight,
+width:leftColWidth,
+height:imageHeight,
+borderWidth:0.5,
+borderColor:rgb(0,0,0)
 });
+
 }
 
-function drawRightField(label, name, y){
-page.drawText(label,{
-x: rightColX,
-y: y + 4,
-size: 9,
-font: font
-});
 
-const f = form.createTextField(name);
-f.setText(data[name] || "");
-f.addToPage(page,{
-x: rightColX,
-y: y - 16,
-width: rightColWidth,
-height: 16
-});
-
-page.drawRectangle({
-x: rightColX,
-y: y - 16,
-width: rightColWidth,
-height: 16,
-borderWidth: 0.5,
-borderColor: rgb(0,0,0)
-});
-}
-
-// =============================================
-//     SINIESTRO + AÑO (BORDE ÚNICO)
-// =============================================
+// =================================================
+// SINIESTRO + AÑO
+// =================================================
 
 const fila1Y = topY - 20;
-const filaHeight = 20;
-const filaWidth = 170;
 
-// BORDE GENERAL
 page.drawRectangle({
-x: rightColX,
-y: fila1Y - 8,
-width: filaWidth,
-height: filaHeight,
-borderWidth: 0.5,
-borderColor: rgb(0,0,0)
+x:rightColX,
+y:fila1Y-8,
+width:170,
+height:20,
+borderWidth:0.5,
+borderColor:rgb(0,0,0)
 });
 
-// TEXTO SINIESTRO
-page.drawText("Siniestro:", {
-x: rightColX + 4,
-y: fila1Y,
-size: 9,
-font: font
+page.drawText("Siniestro:",{
+x:rightColX+4,
+y:fila1Y,
+size:9,
+font
 });
 
-// CAMPO SIN BORDE
 const siniestroField = form.createTextField("siniestro");
+
 siniestroField.setText(data.siniestro1 || "");
-siniestroField.setTextColor(rgb(0,0,0));
+
 siniestroField.addToPage(page,{
-x: rightColX + 50,
-y: fila1Y - 5,
-width: 45,
-height: 12,
-borderWidth: 0
+x:rightColX+50,
+y:fila1Y-5,
+width:45,
+height:12
 });
 
-// TEXTO AÑO
-page.drawText("Año:", {
-x: rightColX + 100,
-y: fila1Y,
-size: 9,
-font: font
+page.drawText("Año:",{
+x:rightColX+100,
+y:fila1Y,
+size:9,
+font
 });
 
-// CAMPO AÑO
 const anioField = form.createTextField("anio");
+
 anioField.setText(data.siniestro2 || "");
-anioField.setTextColor(rgb(0,0,0));
+
 anioField.addToPage(page,{
-x: rightColX + 125,
-y: fila1Y - 5,
-width: 35,
-height: 12,
-borderWidth: 0
+x:rightColX+125,
+y:fila1Y-5,
+width:35,
+height:12
 });
 
 
-// =============================================
-//         DIFICULTAD VISUAL
-// =============================================
+// =================================================
+// DIFICULTAD VISUAL
+// =================================================
 
 const dificultadY = fila1Y - 35;
+
 const dificultadWidth = startX + totalTablesWidth - rightColX;
 
-// BORDE GENERAL
 page.drawRectangle({
-x: rightColX,
-y: dificultadY - 8,
-width: dificultadWidth,
-height: 20,
-borderWidth: 0.5,
-borderColor: rgb(0,0,0)
+x:rightColX,
+y:dificultadY-8,
+width:dificultadWidth,
+height:20,
+borderWidth:0.5,
+borderColor:rgb(0,0,0)
 });
 
-// TEXTO
-page.drawText("¿Dificultad visual?:", {
-x: rightColX + 4,
-y: dificultadY,
-size: 9,
-font: font
+page.drawText("¿Dificultad visual?:",{
+x:rightColX+4,
+y:dificultadY,
+size:9,
+font
 });
 
-// CAMPO SIN BORDE
 const dificultadVisualField = form.createTextField("dificultadVisual");
+
 dificultadVisualField.setText(data.dificultadVisual || "");
-dificultadVisualField.setTextColor(rgb(0,0,0));
 
 dificultadVisualField.addToPage(page,{
-x: rightColX + 105,
-y: dificultadY - 5,
-width: dificultadWidth - 110,
-height: 12,
-borderWidth: 0
+x:rightColX+105,
+y:dificultadY-5,
+width:dificultadWidth-110,
+height:12
 });
 
-// =================================================
-// TEXTO INFORMATIVO (CENTRADO REAL)
-// =================================================
-
-const infoY = 480;
-const boxHeight = 18;
-
-function drawBorderBox(x, y, width, height) {
-page.drawLine({ start: { x, y }, end: { x: x + width, y }, thickness: 0.5 });
-page.drawLine({ start: { x, y }, end: { x, y: y + height }, thickness: 0.5 });
-page.drawLine({ start: { x: x + width, y }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-page.drawLine({ start: { x, y: y + height }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-}
-
-function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
-
-const lines = text.split("\n");
-const lineHeight = size + 2;
-
-lines.forEach((line, index) => {
-
-const textWidth = fontUsed.widthOfTextAtSize(line, size);
-
-const textX = boxX + (boxWidth - textWidth) / 2;
-
-const textY =
-boxY +
-(boxHeight / 2) -
-(lineHeight * lines.length) / 2 +
-(lines.length - 1 - index) * lineHeight +
-2;
-
-page.drawText(line, {
-x: textX,
-y: textY,
-size: size,
-font: fontUsed,
-color: rgb(0,0,0)
-});
-});
-}
-
-// Primera línea
-drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
-
-drawCenteredText(
-"SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-startX,
-infoY,
-totalTablesWidth,
-fontBold,
-8
-);
-
-// Segunda línea
-drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight);
-
-drawCenteredText(
-"ANULA / REEMPLAZA EXTRA SEGURO DE FECHA:",
-startX,
-infoY - boxHeight,
-totalTablesWidth,
-fontBold,
-8
-);
 
 // =================================================
 // TABLAS
 // =================================================
 
-function drawTabla(tabla, startX, startY){
+function drawTabla(tabla,startX,startY){
 
-const colW = [140,50,50];
-const headers = ["PIEZA","CHAPA","PINTURA"];
-const rowH = 16;
-let y = startY;
+const colW=[140,50,50];
+const headers=["PIEZA","CHAPA","PINTURA"];
+const rowH=16;
+
+let y=startY;
 
 headers.forEach((h,i)=>{
-const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0);
+
+const x=startX+colW.slice(0,i).reduce((a,b)=>a+b,0);
 
 page.drawRectangle({
-x, y,
+x,
+y,
 width:colW[i],
 height:rowH,
 color:rgb(0.9,0.9,0.9),
-borderWidth:0.5,
-borderColor: rgb(0,0,0)
+borderWidth:0.5
 });
 
 page.drawText(h,{
 x:x+4,
 y:y+4,
 size:8,
-font:fontBold,
-color: rgb(0,0,0)
-});
+font:fontBold
 });
 
-y -= rowH;
+});
 
-(tabla || []).forEach((row,i)=>{
-const vals = [row.pieza, row.chapa, row.pintura];
+y-=rowH;
+
+(tabla||[]).forEach((row,i)=>{
+
+const vals=[row.pieza,row.chapa,row.pintura];
 
 vals.forEach((val,c)=>{
-const x = startX + colW.slice(0,c).reduce((a,b)=>a+b,0);
 
-const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
-f.setText(val || "");
+const x=startX+colW.slice(0,c).reduce((a,b)=>a+b,0);
 
-//  tamaño fijo para todos
+const f=form.createTextField(`tbl_${startX}_${i}_${c}`);
 
-// 🔹 pieza queda alineada izquierda pero tamaño fijo
-if (c === 0) {
+f.setText(val||"");
+
+if(c===0){
 f.setAlignment(0);
 }
 
 f.addToPage(page,{
 x,
 y,
-width: colW[c],
-height: rowH
+width:colW[c],
+height:rowH
 });
 
 page.drawRectangle({
@@ -510,75 +443,80 @@ x,
 y,
 width:colW[c],
 height:rowH,
-borderWidth:0.5,
-borderColor: rgb(0,0,0)
-});
+borderWidth:0.5
 });
 
-y -= rowH;
+});
+
+y-=rowH;
+
 });
 
 return y;
+
 }
+
 
 const tableStartY = 415;
 
-const endY1 = drawTabla(data.tabla1, startX, tableStartY);
-const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
+const endY1 = drawTabla(data.tabla1,startX,tableStartY);
+const endY2 = drawTabla(data.tabla2,startX+tableWidth+gap,tableStartY);
 
-const bottomTablesY = Math.min(endY1, endY2);
+const bottomTablesY = Math.min(endY1,endY2);
+
 
 // =================================================
-// CAMPO POR CARS (AL FINAL)
+// POR CARS
 // =================================================
 
 const quienY = bottomTablesY - 20;
 
-page.drawText("POR CARS:", {
-x: startX,
-y: quienY,
-size: 9,
-font: font
+page.drawText("POR CARS:",{
+x:startX,
+y:quienY,
+size:9,
+font
 });
 
-const quienStartX = startX + 65;
-const quienWidth = 140;
-
 const quienField = form.createTextField("quien");
+
 quienField.setText(data.quien || "");
-quienField.setTextColor(rgb(0,0,0));
+
 quienField.addToPage(page,{
-x: quienStartX,
-y: quienY - 4,
-width: quienWidth,
-height: 14
+x:startX+65,
+y:quienY-4,
+width:140,
+height:14
 });
 
 page.drawRectangle({
-x: quienStartX,
-y: quienY - 4,
-width: quienWidth,
-height: 14,
-borderWidth: 0.5,
-borderColor: rgb(0,0,0)
+x:startX+65,
+y:quienY-4,
+width:140,
+height:14,
+borderWidth:0.5
 });
+
+
 // =================================================
 // GUARDAR
 // =================================================
 
 const pdfBytes = await pdfDoc.save();
 
-res.setHeader("Content-Type", "application/pdf");
+res.setHeader("Content-Type","application/pdf");
 res.setHeader(
-  "Content-Disposition",
-  `attachment; filename="editable_${Date.now()}.pdf"`
+"Content-Disposition",
+`attachment; filename="editable_${Date.now()}.pdf"`
 );
 
 res.send(Buffer.from(pdfBytes));
 
-} catch (err) {
-  console.error(err);
-  res.status(500).json({ error: err.message });
+}catch(err){
+
+console.error(err);
+res.status(500).json({error:err.message});
+
 }
 
 });
@@ -588,9 +526,12 @@ res.send(Buffer.from(pdfBytes));
 
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto", PORT);
+app.listen(PORT,()=>{
+
+console.log("Servidor corriendo en puerto",PORT);
+
 });
+
 
 
 

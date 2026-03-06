@@ -155,6 +155,12 @@ const form = pdfDoc.getForm();
 const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+  form.getFields().forEach(f => {
+  try {
+    f.enableReadOnly();
+    f.enableReadOnly(false);
+  } catch(e){}
+});
 
 // =================================================
 // VARIABLES DE DISEÑO
@@ -500,23 +506,15 @@ borderWidth:0.5
 form.updateFieldAppearances(font);
 
 const pdfBytes = await pdfDoc.save();
+const pdfBuffer = Buffer.from(pdfBytes);
 
-res.setHeader("Content-Type","application/pdf");
-res.setHeader(
-"Content-Disposition",
-`attachment; filename="editable_${Date.now()}.pdf"`
-);
-
-res.end(Buffer.from(pdfBytes));
-
-}catch(err){
-
-console.error("ERROR GENERANDO PDF:",err);
-res.status(500).send("Error generando PDF");
-
-}
-
+res.set({
+  "Content-Type": "application/pdf",
+  "Content-Disposition": `attachment; filename="editable_${Date.now()}.pdf"`,
+  "Content-Length": pdfBuffer.length
 });
+
+res.end(pdfBuffer);
 
 
 // ================= START SERVER =================
@@ -526,6 +524,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT,()=>{
 console.log("Servidor corriendo en puerto",PORT);
 });
+
 
 
 

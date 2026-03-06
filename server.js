@@ -155,6 +155,7 @@ const form = pdfDoc.getForm();
 const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+
 // =================================================
 // VARIABLES DE DISEÑO
 // =================================================
@@ -226,7 +227,6 @@ function drawLabelField(label,name,x,y,width){
 page.drawText(label,{x,y:y+4,size:9,font});
 
 const f = form.createTextField(name);
-
 f.setText(data[name] || "");
 
 f.addToPage(page,{
@@ -315,7 +315,6 @@ font
 });
 
 const siniestroField = form.createTextField("siniestro");
-
 siniestroField.setText(data.siniestro1 || "");
 
 siniestroField.addToPage(page,{
@@ -333,7 +332,6 @@ font
 });
 
 const anioField = form.createTextField("anio");
-
 anioField.setText(data.siniestro2 || "");
 
 anioField.addToPage(page,{
@@ -369,7 +367,6 @@ font
 });
 
 const dificultadVisualField = form.createTextField("dificultadVisual");
-
 dificultadVisualField.setText(data.dificultadVisual || "");
 
 dificultadVisualField.addToPage(page,{
@@ -425,7 +422,6 @@ vals.forEach((val,c)=>{
 const x=startX+colW.slice(0,c).reduce((a,b)=>a+b,0);
 
 const f=form.createTextField(`tbl_${startX}_${i}_${c}`);
-
 f.setText(val||"");
 
 if(c===0){
@@ -457,7 +453,6 @@ return y;
 
 }
 
-
 const tableStartY = 415;
 
 const endY1 = drawTabla(data.tabla1,startX,tableStartY);
@@ -480,7 +475,6 @@ font
 });
 
 const quienField = form.createTextField("quien");
-
 quienField.setText(data.quien || "");
 
 quienField.addToPage(page,{
@@ -498,6 +492,7 @@ height:14,
 borderWidth:0.5
 });
 
+
 // =================================================
 // GUARDAR
 // =================================================
@@ -512,12 +507,12 @@ res.setHeader(
 `attachment; filename="editable_${Date.now()}.pdf"`
 );
 
-res.send(Buffer.from(pdfBytes));
+res.end(Buffer.from(pdfBytes));
 
 }catch(err){
 
-console.error(err);
-res.status(500).json({error:err.message});
+console.error("ERROR GENERANDO PDF:",err);
+res.status(500).send("Error generando PDF");
 
 }
 

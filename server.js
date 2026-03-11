@@ -20,11 +20,11 @@ app.get("/",(req,res)=>{
 
 // ================= ENV =================
 
-const TENANT_ID = process.env.TENANT_ID;
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const SITE_ID = process.env.SITE_ID;
-const DRIVE_ID = process.env.DRIVE_ID;
+const TENANT_ID = process.env.TENANT_ID || "";
+const CLIENT_ID = process.env.CLIENT_ID || "";
+const CLIENT_SECRET = process.env.CLIENT_SECRET || "";
+const SITE_ID = process.env.SITE_ID || "";
+const DRIVE_ID = process.env.DRIVE_ID || "";
 
 const DEFAULT_FOLDER = process.env.FOLDER_PATH || "Extra Seguro";
 
@@ -529,6 +529,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT,()=>{
 console.log("Servidor corriendo en puerto",PORT);
 });
+
 
 
 

@@ -44,6 +44,11 @@ app.options("*", cors());
 // ================= TOKEN =================
 
 async function getAccessToken() {
+
+if(!TENANT_ID || !CLIENT_ID || !CLIENT_SECRET){
+throw new Error("Variables SharePoint no configuradas");
+}
+
 const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
 
 const body = qs.stringify({
@@ -62,9 +67,8 @@ body,
 const data = await r.json();
 if (!r.ok) throw new Error(JSON.stringify(data));
 return data.access_token;
+
 }
-
-
 // ================= SHAREPOINT UPLOAD =================
 
 async function uploadToSharePoint(accessToken, buffer, filename, folder) {
@@ -529,6 +533,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT,()=>{
 console.log("Servidor corriendo en puerto",PORT);
 });
+
 
 
 

@@ -377,43 +377,16 @@ dificultadVisualField.addToPage(page,{
 
 
     // =================================================
-// TABLAS
-// =================================================
+    // TABLAS
+    // =================================================
 
 function drawTabla(tabla,startX,startY){
 
   const colW = [140,50,50];
-  const headers = ["PIEZA","CHAPA","PINTURA"];
   const rowH = 16;
 
   let y = startY;
 
-  // HEADERS
-  headers.forEach((h,i)=>{
-
-    const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0);
-
-    page.drawRectangle({
-      x,
-      y,
-      width:colW[i],
-      height:rowH,
-      color:rgb(0.9,0.9,0.9),
-      borderWidth:0.5
-    });
-
-    page.drawText(h,{
-      x:x+4,
-      y:y+4,
-      size:8,
-      font:fontBold
-    });
-
-  });
-
-  y -= rowH;
-
-  // FILAS
   (tabla || []).forEach((row,i)=>{
 
     const vals = [row.pieza,row.chapa,row.pintura];
@@ -426,10 +399,6 @@ function drawTabla(tabla,startX,startY){
 
       f.setText(val || "");
       f.setBorderWidth(0);
-
-      if(c===0){
-        f.setAlignment(0);
-      }
 
       f.addToPage(page,{
         x,
@@ -456,22 +425,17 @@ function drawTabla(tabla,startX,startY){
 
 }
 
-
-// =================================================
-// DIBUJAR TABLAS
-// =================================================
-
 const tableStartY = 415;
 
-const endY1 = drawTabla(data.tabla1, startX, tableStartY);
-const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
+const endY1 = drawTabla(data.tabla1,startX,tableStartY);
+const endY2 = drawTabla(data.tabla2,startX + tableWidth + gap,tableStartY);
 
 const bottomTablesY = Math.min(endY1,endY2);
 
 
-// =============================================
-// POR CARS
-// =============================================
+    // =============================================
+    // POR CARS
+    // =============================================
 
 const quienY = bottomTablesY - 20;
 
@@ -502,6 +466,7 @@ page.drawLine({
   end:{x:quienStartX+quienWidth,y:quienY-2},
   thickness:0.8
 });
+
 
     // =================================================
     // GUARDAR

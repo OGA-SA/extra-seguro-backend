@@ -314,7 +314,6 @@ page.drawText("Siniestro:", {
 // CAMPO SIN BORDE
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
-siniestroField.setTextColor(rgb(0,0,0));
 siniestroField.addToPage(page,{
   x: rightColX + 50,
   y: fila1Y - 5,
@@ -334,7 +333,6 @@ page.drawText("Año:", {
 // CAMPO AÑO
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
-anioField.setTextColor(rgb(0,0,0));
 anioField.addToPage(page,{
   x: rightColX + 125,
   y: fila1Y - 5,
@@ -372,7 +370,6 @@ page.drawText("¿Dificultad visual?:", {
 // CAMPO SIN BORDE
 const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
-dificultadVisualField.setTextColor(rgb(0,0,0));
 
 dificultadVisualField.addToPage(page,{
   x: rightColX + 105,

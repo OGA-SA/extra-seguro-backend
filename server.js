@@ -195,7 +195,7 @@ if (fs.existsSync(logoPath)) {
         color: rgb(0,0,0)
       });
     
-// =================================================
+// ====// =================================================
 // CAMPOS SUPERIORES (BORDE EXTERNO)
 // =================================================
 
@@ -224,9 +224,7 @@ function drawLabelField(label, name, x, y, width){
 
   // CAMPO EDITABLE SIN BORDE
   const f = form.createTextField(name);
-
   f.setText(data[name] || "");
-  f.setBorderWidth(0);
 
   f.addToPage(page,{
     x: x + 60,
@@ -237,11 +235,11 @@ function drawLabelField(label, name, x, y, width){
 
 }
 
+
 // CAMPOS
 drawLabelField("Taller N°:", "taller", 40, 750, 100);
 drawLabelField("Serie y N°:", "serieNumero", 210, 750, 100);
 drawLabelField("Fecha:", "fecha", 380, 750, 80);
-
     // =================================================
     // BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)
     // =================================================

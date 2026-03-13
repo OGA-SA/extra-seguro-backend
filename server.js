@@ -286,97 +286,77 @@ if (fs.existsSync(logoPath)) {
     }
 
 // =============================================
-//     SINIESTRO + AÑO (MISMA FILA - BORDE ÚNICO)
+//     SINIESTRO + AÑO (MISMA FILA)
 // =============================================
 
+
 const fila1Y = topY - 20;
-const filaHeight = 16;
-const filaWidth = 170;
 
-// BORDE GENERAL
-page.drawRectangle({
-  x: rightColX,
-  y: fila1Y - 6,
-  width: filaWidth,
-  height: filaHeight,
-  borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
-});
-
-// TEXTO SINIESTRO
+// SINIESTRO
 page.drawText("Siniestro:", {
-  x: rightColX + 4,
+  x: rightColX,
   y: fila1Y,
   size: 9,
   font: font
 });
 
-// CAMPO SINIESTRO (SIN BORDE)
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
 siniestroField.addToPage(page,{
-  x: rightColX + 50,
+  x: rightColX + 45,
   y: fila1Y - 4,
-  width: 45,
-  height: 14,
-  borderWidth: 0
+  width: 55,
+  height: 14
 });
 
-// TEXTO AÑO
+// AÑO
 page.drawText("Año:", {
-  x: rightColX + 100,
+  x: rightColX + 120,   // ← lo movemos a la derecha
   y: fila1Y,
   size: 9,
   font: font
 });
 
-// CAMPO AÑO (SIN BORDE)
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
 anioField.addToPage(page,{
-  x: rightColX + 125,
+  x: rightColX + 145,
   y: fila1Y - 4,
-  width: 35,
-  height: 14,
-  borderWidth: 0
+  width: 45,
+  height: 14
 });
+    
 // =============================================
-//         DIFICULTAD VISUAL (BORDE COMPLETO)
+//         DIFICULTAD VISUAL ALINEADO
 // =============================================
 
 const dificultadY = fila1Y - 35;
-const dificultadWidth = startX + totalTablesWidth - rightColX;
 
-// BORDE GENERAL
-page.drawRectangle({
-  x: rightColX,
-  y: dificultadY - 6,
-  width: dificultadWidth,
-  height: 16,
-  borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
-});
-
-// TEXTO
 page.drawText("¿Dificultad visual?:", {
-  x: rightColX + 4,
+  x: rightColX,
   y: dificultadY,
   size: 9,
   font: font
 });
 
-// CAMPO SIN BORDE
 const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
-
 dificultadVisualField.addToPage(page,{
-  x: rightColX + 105,
+  x: rightColX + 100,
   y: dificultadY - 4,
-  width: dificultadWidth - 110,
-  height: 14,
-  borderWidth: 0
+  width: 85,   // ← ajustado para que termine en mismo margen que Año
+  height: 14
 });
-    
+
+page.drawRectangle({
+  x: rightColX + 100,
+  y: dificultadY - 4,
+  width: 85,
+  height: 14,
+  borderWidth: 0.5,
+  borderColor: rgb(0,0,0)
+});
+ 
 // =================================================
 // TEXTO INFORMATIVO (CENTRADO REAL)
 // =================================================
@@ -516,7 +496,7 @@ drawCenteredText(
       return y;
     }
 
-    const tableStartY = 415;
+    const tableStartY = 440;
 
     const endY1 = drawTabla(data.tabla1, startX, tableStartY);
     const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
@@ -536,22 +516,19 @@ page.drawText("POR CARS:", {
   font: font
 });
 
-const quienStartX = startX + 65;
-const quienWidth = 140;
-
 const quienField = form.createTextField("quien");
 quienField.setText(data.quien || "");
 quienField.addToPage(page,{
-  x: quienStartX,
+  x: startX + 65,
   y: quienY - 4,
-  width: quienWidth,
+  width: 200,
   height: 14
 });
 
 page.drawRectangle({
-  x: quienStartX,
+  x: startX + 65,
   y: quienY - 4,
-  width: quienWidth,
+  width: 200,
   height: 14,
   borderWidth: 0.5,
   borderColor: rgb(0,0,0)
@@ -592,6 +569,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

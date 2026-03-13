@@ -166,7 +166,7 @@ if (fs.existsSync(logoPath)) {
   const logoImage = await pdfDoc.embedJpg(logoBytes);
 
   page.drawImage(logoImage,{
-    x: startX,
+    x: 40,
     y: 775,
     width: 90,
     height: 35
@@ -218,7 +218,7 @@ if (fs.existsSync(logoPath)) {
       });
     }
 
-    drawLabelField("Taller N°:", "taller", startX, 750, 100);
+    drawLabelField("Taller N°:", "taller", 40, 750, 100);
     drawLabelField("Serie y N°:", "serieNumero", 210, 750, 100);
     drawLabelField("Fecha:", "fecha", 380, 750, 80);
 
@@ -226,7 +226,7 @@ if (fs.existsSync(logoPath)) {
     // BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)
     // =================================================
 
-    const leftColX = startX;
+    const leftColX = 40;
     const leftColWidth = 330;
 
     const rightColX = leftColX + leftColWidth + 15;
@@ -569,7 +569,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
-
 
 
 

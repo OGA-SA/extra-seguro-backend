@@ -230,7 +230,8 @@ function drawLabelField(label, name, x, y, width){
     x: x + 60,
     y: y - 5,
     width: width,
-    height: 12
+    height: 12,
+    borderWidth: 0
   });
 
 }

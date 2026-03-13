@@ -194,9 +194,7 @@ if (fs.existsSync(logoPath)) {
         font: fontBold,
         color: rgb(0,0,0)
       });
-    // =================================================
-    // CAMPOS SUPERIORES
-    // =================================================
+    
 // =================================================
 // CAMPOS SUPERIORES (BORDE EXTERNO)
 // =================================================
@@ -226,8 +224,8 @@ function drawLabelField(label, name, x, y, width){
 
   // CAMPO EDITABLE SIN BORDE
   const f = form.createTextField(name);
+
   f.setText(data[name] || "");
-  f.setTextColor(rgb(0,0,0));
   f.setBorderWidth(0);
 
   f.addToPage(page,{

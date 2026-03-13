@@ -546,7 +546,6 @@ const quienWidth = 140;
 
 const quienField = form.createTextField("quien");
 quienField.setText(data.quien || "");
-quienField.setTextColor(rgb(0,0,0));
 quienField.addToPage(page,{
   x: quienStartX,
   y: quienY - 4,
@@ -598,6 +597,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

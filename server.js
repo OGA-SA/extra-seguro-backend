@@ -197,27 +197,52 @@ if (fs.existsSync(logoPath)) {
     // =================================================
     // CAMPOS SUPERIORES
     // =================================================
+// =================================================
+// CAMPOS SUPERIORES (BORDE EXTERNO)
+// =================================================
 
-    function drawLabelField(label, name, x, y, width){
-      page.drawText(label,{ x, y: y+4, size:9, font });
+function drawLabelField(label, name, x, y, width){
 
-      const f = form.createTextField(name);
-      f.setText(data[name] || "");
-      f.addToPage(page,{ x:x+60, y, width, height:16 });
+  const boxWidth = width + 60;
+  const boxHeight = 20;
 
-      page.drawRectangle({
-        x:x+60,
-        y,
-        width,
-        height:16,
-        borderWidth:0.5,
-        borderColor: rgb(0,0,0)
-      });
-    }
+  // BORDE EXTERNO
+  page.drawRectangle({
+    x: x,
+    y: y - 6,
+    width: boxWidth,
+    height: boxHeight,
+    borderWidth: 0.5,
+    borderColor: rgb(0,0,0)
+  });
 
-    drawLabelField("Taller N°:", "taller", 40, 750, 100);
-    drawLabelField("Serie y N°:", "serieNumero", 210, 750, 100);
-    drawLabelField("Fecha:", "fecha", 380, 750, 80);
+  // TEXTO
+  page.drawText(label,{
+    x: x + 4,
+    y: y,
+    size: 9,
+    font
+  });
+
+  // CAMPO EDITABLE SIN BORDE
+  const f = form.createTextField(name);
+  f.setText(data[name] || "");
+  f.setTextColor(rgb(0,0,0));
+  f.setBorderWidth(0);
+
+  f.addToPage(page,{
+    x: x + 60,
+    y: y - 5,
+    width: width,
+    height: 12
+  });
+
+}
+
+// CAMPOS
+drawLabelField("Taller N°:", "taller", 40, 750, 100);
+drawLabelField("Serie y N°:", "serieNumero", 210, 750, 100);
+drawLabelField("Fecha:", "fecha", 380, 750, 80);
 
     // =================================================
     // BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)

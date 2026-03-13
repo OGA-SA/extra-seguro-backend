@@ -272,7 +272,7 @@ drawLabelField("Fecha:", "fecha", 380, 750, 80);
         y: topY - imageHeight,
         width: leftColWidth,
         height: imageHeight,
-        borderWidth: 0.5,
+        borderWidth: 0,
         borderColor: rgb(0,0,0)
       });
     }
@@ -299,7 +299,7 @@ drawLabelField("Fecha:", "fecha", 380, 750, 80);
         y: y - 16,
         width: rightColWidth,
         height: 16,
-        borderWidth: 0.5,
+        borderWidth: 0,
         borderColor: rgb(0,0,0)
       });
     }

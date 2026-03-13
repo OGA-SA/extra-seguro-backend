@@ -155,17 +155,21 @@ app.post("/generate-pdf-editable", async (req, res) => {
     // HEADER
     // =================================================
 
-    const logoPath = path.join(__dirname, "cars.jpg");
-    const logoBytes = fs.readFileSync(logoPath);
+  const logoPath = path.join(__dirname, "cars.jpg");
 
-    const logoImage = await pdfDoc.embedJpg(logoBytes);
+if (fs.existsSync(logoPath)) {
 
-    page.drawImage(logoImage,{
-      x: 40,
-      y: 775,
-      width: 90,
-      height: 35
-    });
+  const logoBytes = fs.readFileSync(logoPath);
+  const logoImage = await pdfDoc.embedJpg(logoBytes);
+
+  page.drawImage(logoImage,{
+    x: 40,
+    y: 775,
+    width: 90,
+    height: 35
+  });
+
+}
      // =================================================
     // FORMULARIO EXTRA SEGURO
     // =================================================
@@ -562,8 +566,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
-
-
 
 
 

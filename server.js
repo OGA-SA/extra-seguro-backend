@@ -227,9 +227,12 @@ function drawLabelField(label, name, x, y, width){
   const fieldHeight = 12;
   const fieldY = (y - 6) + (boxHeight - fieldHeight) / 2;
 
-  // CAMPO EDITABLE SIN BORDE
+ // CAMPO SIN BORDE
   const f = form.createTextField(name);
   f.setText(data[name] || "");
+
+  f.setBorderWidth(0);              // 👈 elimina borde
+  f.setBorderColor(rgb(1,1,1));     // 👈 refuerzo invisible
 
   f.addToPage(page,{
     x: x + labelOffset,
@@ -237,7 +240,6 @@ function drawLabelField(label, name, x, y, width){
     width: width,
     height: fieldHeight
   });
-
 }
 
 

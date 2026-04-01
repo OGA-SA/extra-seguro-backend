@@ -268,55 +268,20 @@ drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
     const imageHeight = 170;
 
     // Imagen parabrisas
-    if(data.canvasImage){
-      const img = await pdfDoc.embedPng(
-        Buffer.from(data.canvasImage.split(",")[1],"base64")
-      );
+   if(data.canvasImage){
 
-      page.drawImage(img,{
-        x: leftColX,
-        y: topY - imageHeight,
-        width: leftColWidth,
-        height: imageHeight
-      });
+  const img = await pdfDoc.embedPng(
+    Buffer.from(data.canvasImage.split(",")[1],"base64")
+  );
 
-      page.drawRectangle({
-        x: leftColX,
-        y: topY - imageHeight,
-        width: leftColWidth,
-        height: imageHeight,
-        borderWidth: 0,
-        borderColor: rgb(0,0,0)
-      });
-    }
+  page.drawImage(img,{
+    x: leftColX,
+    y: topY - imageHeight,
+    width: leftColWidth,
+    height: imageHeight
+  });
 
-    function drawRightField(label, name, y){
-      page.drawText(label,{
-        x: rightColX,
-        y: y + 4,
-        size: 9,
-        font: font
-      });
-
-      const f = form.createTextField(name);
-      f.setText(data[name] || "");
-      f.addToPage(page,{
-        x: rightColX,
-        y: y - 16,
-        width: rightColWidth,
-        height: 16
-      });
-
-      page.drawRectangle({
-        x: rightColX,
-        y: y - 16,
-        width: rightColWidth,
-        height: 16,
-        borderWidth: 0,
-        borderColor: rgb(0,0,0)
-      });
-    }
-
+}
 // =============================================
 //     SINIESTRO + AÑO (BORDE ÚNICO)
 // =============================================

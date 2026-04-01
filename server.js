@@ -192,7 +192,6 @@ if (fs.existsSync(logoPath)) {
         y: 794,
         size: tituloSize,
         font: fontBold,
-        color: rgb(0,0,0)
       });
 
     
@@ -262,19 +261,12 @@ drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
     const leftColWidth = 330;
 
     const rightColX = leftColX + leftColWidth + 15;
-    const rightColWidth = 160;
-
+    
     const topY = 700;
     const imageHeight = 170;
 
     // Imagen parabrisas
    if(data.canvasImage){
-
-  const img = await pdfDoc.embedPng(
-    Buffer.from(data.canvasImage.split(",")[1],"base64")
-  );
-
-  if(data.canvasImage){
 
   const img = await pdfDoc.embedPng(
     Buffer.from(data.canvasImage.split(",")[1],"base64")
@@ -289,7 +281,7 @@ drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
 
 }
 
-}
+
 // =============================================
 //     SINIESTRO + AÑO (BORDE ÚNICO)
 // =============================================
@@ -305,7 +297,6 @@ page.drawRectangle({
   width: filaWidth,
   height: filaHeight,
   borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
 });
 
 // TEXTO SINIESTRO
@@ -319,12 +310,13 @@ page.drawText("Siniestro:", {
 // CAMPO SIN BORDE
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
+siniestroField.setBackgroundColor(rgb(1,1,1));
+    
 siniestroField.addToPage(page,{
   x: rightColX + 50,
   y: fila1Y - 5,
   width: 45,
   height: 12,
-  borderWidth: 0
 });
 
 // TEXTO AÑO
@@ -338,12 +330,13 @@ page.drawText("Año:", {
 // CAMPO AÑO
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
+anioField.setBackgroundColor(rgb(1,1,1));
+    
 anioField.addToPage(page,{
   x: rightColX + 125,
   y: fila1Y - 5,
   width: 35,
   height: 12,
-  borderWidth: 0
 });
     
 // =============================================
@@ -360,8 +353,7 @@ page.drawRectangle({
   width: dificultadWidth,
   height: 20,
   borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
-});
+  });
 
 // TEXTO
 page.drawText("¿Dificultad visual?:", {
@@ -374,13 +366,14 @@ page.drawText("¿Dificultad visual?:", {
 // CAMPO SIN BORDE
 const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
+dificultadVisualField.setBackgroundColor(rgb(1,1,1));
+  
 
 dificultadVisualField.addToPage(page,{
   x: rightColX + 105,
   y: dificultadY - 5,
   width: dificultadWidth - 110,
   height: 12,
-  borderWidth: 0
 });
     
 // =================================================
@@ -491,6 +484,7 @@ drawCenteredText(
 
           const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
+          f.setBackgroundColor(rgb(1,1,1));
           
        //  tamaño fijo para todos
           
@@ -512,7 +506,6 @@ drawCenteredText(
             width:colW[c],
             height:rowH,
             borderWidth:0.5,
-            borderColor: rgb(0,0,0)
           });
         });
 
@@ -547,6 +540,8 @@ const quienWidth = 140;
 
 const quienField = form.createTextField("quien");
 quienField.setText(data.quien || "");
+quienField.setBackgroundColor(rgb(1,1,1));
+
 quienField.addToPage(page,{
   x: quienStartX,
   y: quienY - 4,
@@ -560,7 +555,6 @@ page.drawRectangle({
   width: quienWidth,
   height: 14,
   borderWidth: 0.5,
-  borderColor: rgb(0,0,0)
 });
 
     // =================================================

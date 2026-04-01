@@ -195,13 +195,9 @@ if (fs.existsSync(logoPath)) {
         color: rgb(0,0,0)
       });
 
-    // =================================================
-// CAMPOS SUPERIORES (BORDE EXTERNO + ALINEADOS)
-// =================================================
+    function drawLabelField(label, name, x, y, width){
 
-function drawLabelField(label, name, x, y, width){
-
-  const labelOffset = 60; // 👈 mantenemos tu lógica
+  const labelOffset = 60;
   const boxWidth = width + labelOffset;
   const boxHeight = 20;
 
@@ -223,16 +219,15 @@ function drawLabelField(label, name, x, y, width){
     font
   });
 
-  // 👉 CENTRADO VERTICAL REAL (MEJORA CLAVE)
+  // CENTRADO VERTICAL
   const fieldHeight = 12;
   const fieldY = (y - 6) + (boxHeight - fieldHeight) / 2;
 
- // CAMPO SIN BORDE
+  // CAMPO SIN BORDE
   const f = form.createTextField(name);
   f.setText(data[name] || "");
 
-  f.setBorderWidth(0);              // 👈 elimina borde
-  f.setBorderColor(rgb(1,1,1));     // 👈 refuerzo invisible
+  f.setBorderWidth(0); // 👈 esto es suficiente
 
   f.addToPage(page,{
     x: x + labelOffset,
@@ -240,8 +235,8 @@ function drawLabelField(label, name, x, y, width){
     width: width,
     height: fieldHeight
   });
-}
 
+}
 
 // =================================================
 // CAMPOS (ALINEADOS CON EL TITULO)

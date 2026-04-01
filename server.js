@@ -310,7 +310,7 @@ page.drawText("Siniestro:", {
 // CAMPO SIN BORDE
 const siniestroField = form.createTextField("siniestro");
 siniestroField.setText(data.siniestro1 || "");
-siniestroField.setBackgroundColor(rgb(1,1,1));
+
     
 siniestroField.addToPage(page,{
   x: rightColX + 50,
@@ -330,7 +330,7 @@ page.drawText("Año:", {
 // CAMPO AÑO
 const anioField = form.createTextField("anio");
 anioField.setText(data.siniestro2 || "");
-anioField.setBackgroundColor(rgb(1,1,1));
+
     
 anioField.addToPage(page,{
   x: rightColX + 125,
@@ -366,7 +366,7 @@ page.drawText("¿Dificultad visual?:", {
 // CAMPO SIN BORDE
 const dificultadVisualField = form.createTextField("dificultadVisual");
 dificultadVisualField.setText(data.dificultadVisual || "");
-dificultadVisualField.setBackgroundColor(rgb(1,1,1));
+
   
 
 dificultadVisualField.addToPage(page,{
@@ -484,7 +484,7 @@ drawCenteredText(
 
           const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
-          f.setBackgroundColor(rgb(1,1,1));
+          
           
        //  tamaño fijo para todos
           
@@ -540,7 +540,7 @@ const quienWidth = 140;
 
 const quienField = form.createTextField("quien");
 quienField.setText(data.quien || "");
-quienField.setBackgroundColor(rgb(1,1,1));
+
 
 quienField.addToPage(page,{
   x: quienStartX,

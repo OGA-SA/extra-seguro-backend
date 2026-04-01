@@ -195,33 +195,10 @@ if (fs.existsSync(logoPath)) {
         color: rgb(0,0,0)
       });
 
-    function drawLabelField(label, name, x, y, width){
-
-  const labelOffset = 60;
-  const boxWidth = width + labelOffset;
-  const boxHeight = 20;
-
-  // BORDE EXTERNO
-  page.drawRectangle({
-    x: x,
-    y: y - 6,
-    width: boxWidth,
-    height: boxHeight,
-    borderWidth: 0.5,
-    borderColor: rgb(0,0,0)
-  });
-
-  // TEXTO
-  page.drawText(label,{
-    x: x + 4,
-    y: y,
-    size: 9,
-    font
-  });
-
+    
   // =================================================
-// CAMPOS SUPERIORES (ALINEADOS + CENTRADO VERTICAL)
-// =================================================
+  // CAMPOS SUPERIORES (ALINEADOS + CENTRADO VERTICAL)
+  // =================================================
 
 function drawLabelField(label, name, x, y, width){
 
@@ -262,7 +239,6 @@ function drawLabelField(label, name, x, y, width){
     height: 12,
     borderWidth: 0
   });
-
 
 }
 

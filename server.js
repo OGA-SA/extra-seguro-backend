@@ -219,15 +219,41 @@ if (fs.existsSync(logoPath)) {
     font
   });
 
-  // CENTRADO VERTICAL
+  // =================================================
+// CAMPOS SUPERIORES (ALINEADOS + CENTRADO VERTICAL)
+// =================================================
+
+function drawLabelField(label, name, x, y, width){
+
+  const labelOffset = 60;
+  const boxWidth = width + labelOffset;
+  const boxHeight = 20;
+
+  // BORDE EXTERNO
+  page.drawRectangle({
+    x: x,
+    y: y - 6,
+    width: boxWidth,
+    height: boxHeight,
+    borderWidth: 0.5,
+    borderColor: rgb(0,0,0)
+  });
+
+  // TEXTO
+  page.drawText(label,{
+    x: x + 4,
+    y: y,
+    size: 9,
+    font
+  });
+
+  // 👉 CENTRADO VERTICAL (esto sí lo mantenemos)
   const fieldHeight = 12;
   const fieldY = (y - 6) + (boxHeight - fieldHeight) / 2;
 
-  // CAMPO SIN BORDE
+  // CAMPO EDITABLE (SIN TOCAR BORDES)
   const f = form.createTextField(name);
   f.setText(data[name] || "");
-
-  f.setBorderWidth(0); // 👈 esto es suficiente
 
   f.addToPage(page,{
     x: x + labelOffset,
@@ -238,15 +264,18 @@ if (fs.existsSync(logoPath)) {
 
 }
 
+
 // =================================================
 // CAMPOS (ALINEADOS CON EL TITULO)
 // =================================================
 
-// 👇 IMPORTANTE: usar startX para alinear con "FORMULARIO EXTRA SEGURO"
-
 drawLabelField("Taller N°:", "taller", startX, 750, 100);
 drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
 drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
+
+}
+
+
     // =================================================
     // BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)
     // =================================================

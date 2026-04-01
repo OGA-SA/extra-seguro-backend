@@ -251,7 +251,7 @@ drawLabelField("Taller N°:", "taller", startX, 750, 100);
 drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
 drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
 
-}
+
 
 
     // =================================================

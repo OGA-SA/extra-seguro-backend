@@ -194,14 +194,15 @@ if (fs.existsSync(logoPath)) {
         font: fontBold,
         color: rgb(0,0,0)
       });
-    
-// ====// =================================================
-// CAMPOS SUPERIORES (BORDE EXTERNO)
+
+    // =================================================
+// CAMPOS SUPERIORES (BORDE EXTERNO + ALINEADOS)
 // =================================================
 
 function drawLabelField(label, name, x, y, width){
 
-  const boxWidth = width + 60;
+  const labelOffset = 60; // 👈 mantenemos tu lógica
+  const boxWidth = width + labelOffset;
   const boxHeight = 20;
 
   // BORDE EXTERNO
@@ -222,25 +223,33 @@ function drawLabelField(label, name, x, y, width){
     font
   });
 
+  // 👉 CENTRADO VERTICAL REAL (MEJORA CLAVE)
+  const fieldHeight = 12;
+  const fieldY = (y - 6) + (boxHeight - fieldHeight) / 2;
+
   // CAMPO EDITABLE SIN BORDE
   const f = form.createTextField(name);
   f.setText(data[name] || "");
 
   f.addToPage(page,{
-    x: x + 60,
-    y: y - 5,
+    x: x + labelOffset,
+    y: fieldY,
     width: width,
-    height: 12,
-    borderWidth: 0
+    height: fieldHeight
   });
 
 }
 
 
-// CAMPOS
-drawLabelField("Taller N°:", "taller", 40, 750, 100);
-drawLabelField("Serie y N°:", "serieNumero", 210, 750, 100);
-drawLabelField("Fecha:", "fecha", 380, 750, 80);
+// =================================================
+// CAMPOS (ALINEADOS CON EL TITULO)
+// =================================================
+
+// 👇 IMPORTANTE: usar startX para alinear con "FORMULARIO EXTRA SEGURO"
+
+drawLabelField("Taller N°:", "taller", startX, 750, 100);
+drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
+drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
     // =================================================
     // BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)
     // =================================================

@@ -560,7 +560,8 @@ page.drawRectangle({
     // =================================================
     // GUARDAR
     // =================================================
-
+    form.updateFieldAppearances(font);
+    
     const pdfBytes = await pdfDoc.save();
 
     const token = await getAccessToken();

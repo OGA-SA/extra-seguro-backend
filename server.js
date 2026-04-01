@@ -256,11 +256,13 @@ function drawLabelField(label, name, x, y, width){
   f.setText(data[name] || "");
 
   f.addToPage(page,{
-    x: x + labelOffset,
-    y: fieldY,
+    x: x + 60,
+    y: y - 5,
     width: width,
-    height: fieldHeight
+    height: 12,
+    borderWidth: 0
   });
+
 
 }
 

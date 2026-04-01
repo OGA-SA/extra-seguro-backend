@@ -274,12 +274,20 @@ drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
     Buffer.from(data.canvasImage.split(",")[1],"base64")
   );
 
+  if(data.canvasImage){
+
+  const img = await pdfDoc.embedPng(
+    Buffer.from(data.canvasImage.split(",")[1],"base64")
+  );
+
   page.drawImage(img,{
-    x: leftColX,
-    y: topY - imageHeight,
-    width: leftColWidth,
-    height: imageHeight
+  x: leftColX + 1,
+  y: topY - imageHeight + 1,
+  width: leftColWidth - 2,
+  height: imageHeight - 2
   });
+
+}
 
 }
 // =============================================

@@ -319,12 +319,11 @@ siniestroField.addToPage(page, {
   height: 12,
 });
 
-// 👇 AGREGAR ESTO
+// ✅ SOLO ESTO
 siniestroField.updateAppearances(font, {
   textColor: rgb(0, 0, 0),
-  backgroundColor: undefined, // 👈 clave para evitar fondo negro
 });
-
+    
 // TEXTO AÑO
 page.drawText("Año:", {
   x: rightColX + 100,
@@ -344,12 +343,10 @@ anioField.addToPage(page, {
   height: 12,
 });
 
-// 👇 AGREGAR ESTO
+// ✅ SOLO ESTO
 anioField.updateAppearances(font, {
   textColor: rgb(0, 0, 0),
-  backgroundColor: undefined, // 👈 clave
 });
-
    
 // =============================================
 //         DIFICULTAD VISUAL

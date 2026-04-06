@@ -286,8 +286,6 @@ drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
 //     SINIESTRO + AÑO (BORDE ÚNICO)
 // =============================================
 
-const { StandardFonts, rgb } = require("pdf-lib");
-
 
 const fila1Y = topY - 20;
 const filaHeight = 20;

@@ -288,8 +288,6 @@ drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
 
 const { StandardFonts, rgb } = require("pdf-lib");
 
-// 👇 Asegurate de tener la fuente cargada
-const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
 const fila1Y = topY - 20;
 const filaHeight = 20;

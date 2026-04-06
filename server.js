@@ -286,6 +286,11 @@ drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
 //     SINIESTRO + AÑO (BORDE ÚNICO)
 // =============================================
 
+const { StandardFonts, rgb } = require("pdf-lib");
+
+// 👇 Asegurate de tener la fuente cargada
+const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
 const fila1Y = topY - 20;
 const filaHeight = 20;
 const filaWidth = 170;
@@ -307,17 +312,25 @@ page.drawText("Siniestro:", {
   font: font
 });
 
-// CAMPO SIN BORDE
+// CAMPO SINIESTRO
 const siniestroField = form.createTextField("siniestro");
+
+// 👉 Setear valor
 siniestroField.setText(data.siniestro1 || "");
 
-    
-siniestroField.addToPage(page,{
+// 👉 Agregar a la página
+siniestroField.addToPage(page, {
   x: rightColX + 50,
   y: fila1Y - 5,
   width: 45,
   height: 12,
 });
+
+// 👉 Forzar apariencia correcta
+siniestroField.updateAppearances(font, {
+  textColor: rgb(0, 0, 0),
+});
+
 
 // TEXTO AÑO
 page.drawText("Año:", {
@@ -329,15 +342,26 @@ page.drawText("Año:", {
 
 // CAMPO AÑO
 const anioField = form.createTextField("anio");
+
+// 👉 Setear valor
 anioField.setText(data.siniestro2 || "");
 
-    
-anioField.addToPage(page,{
+// 👉 Agregar a la página
+anioField.addToPage(page, {
   x: rightColX + 125,
   y: fila1Y - 5,
   width: 35,
   height: 12,
 });
+
+// 👉 Forzar apariencia correcta
+anioField.updateAppearances(font, {
+  textColor: rgb(0, 0, 0),
+});
+
+
+// 🔥 MUY IMPORTANTE (hacer UNA sola vez al final de todos los campos)
+form.updateFieldAppearances(font);
     
 // =============================================
 //         DIFICULTAD VISUAL

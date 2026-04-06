@@ -310,11 +310,8 @@ page.drawText("Siniestro:", {
 
 // CAMPO SINIESTRO
 const siniestroField = form.createTextField("siniestro");
-
-// 👉 Setear valor
 siniestroField.setText(data.siniestro1 || "");
 
-// 👉 Agregar a la página
 siniestroField.addToPage(page, {
   x: rightColX + 50,
   y: fila1Y - 5,
@@ -322,7 +319,11 @@ siniestroField.addToPage(page, {
   height: 12,
 });
 
-
+// 👇 AGREGAR ESTO
+siniestroField.updateAppearances(font, {
+  textColor: rgb(0, 0, 0),
+  backgroundColor: undefined, // 👈 clave para evitar fondo negro
+});
 
 // TEXTO AÑO
 page.drawText("Año:", {
@@ -334,16 +335,19 @@ page.drawText("Año:", {
 
 // CAMPO AÑO
 const anioField = form.createTextField("anio");
-
-// 👉 Setear valor
 anioField.setText(data.siniestro2 || "");
 
-// 👉 Agregar a la página
 anioField.addToPage(page, {
   x: rightColX + 125,
   y: fila1Y - 5,
   width: 35,
   height: 12,
+});
+
+// 👇 AGREGAR ESTO
+anioField.updateAppearances(font, {
+  textColor: rgb(0, 0, 0),
+  backgroundColor: undefined, // 👈 clave
 });
 
    

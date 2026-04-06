@@ -324,10 +324,6 @@ siniestroField.addToPage(page, {
   height: 12,
 });
 
-// 👉 Forzar apariencia correcta
-siniestroField.updateAppearances(font, {
-  textColor: rgb(0, 0, 0),
-});
 
 
 // TEXTO AÑO
@@ -352,15 +348,7 @@ anioField.addToPage(page, {
   height: 12,
 });
 
-// 👉 Forzar apariencia correcta
-anioField.updateAppearances(font, {
-  textColor: rgb(0, 0, 0),
-});
-
-
-// 🔥 MUY IMPORTANTE (hacer UNA sola vez al final de todos los campos)
-form.updateFieldAppearances(font);
-    
+   
 // =============================================
 //         DIFICULTAD VISUAL
 // =============================================

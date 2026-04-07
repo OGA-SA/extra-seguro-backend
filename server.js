@@ -570,7 +570,8 @@ page.drawRectangle({
     // GUARDAR
     // =================================================
     form.updateFieldAppearances(font);
-    
+
+    console.log("ANTES DE SAVE");
     const pdfBytes = await pdfDoc.save();
 
     const token = await getAccessToken();

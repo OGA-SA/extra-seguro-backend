@@ -126,6 +126,18 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 });
 
 // =====================================================
+// 🔥 FIX: evitar campos duplicados
+// =====================================================
+
+function getOrCreateField(form, name) {
+  try {
+    return form.getTextField(name);
+  } catch (e) {
+    return form.createTextField(name);
+  }
+}
+
+// =====================================================
 // ================= PDF EDITABLE ======================
 // =====================================================
 
@@ -142,348 +154,165 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // =================================================
-    // VARIABLES DE DISEÑO
-    // =================================================
-
     const tableWidth = 240;
     const gap = 20;
     const startX = 40;
     const totalTablesWidth = tableWidth * 2 + gap;
 
-    // =================================================
-    // HEADER
-    // =================================================
+    const logoPath = path.join(__dirname, "cars.jpg");
 
-  const logoPath = path.join(__dirname, "cars.jpg");
+    if (fs.existsSync(logoPath)) {
+      const logoBytes = fs.readFileSync(logoPath);
+      const logoImage = await pdfDoc.embedJpg(logoBytes);
 
-if (fs.existsSync(logoPath)) {
+      page.drawImage(logoImage,{
+        x: 40,
+        y: 775,
+        width: 90,
+        height: 35
+      });
+    }
 
-  const logoBytes = fs.readFileSync(logoPath);
-  const logoImage = await pdfDoc.embedJpg(logoBytes);
+    page.drawRectangle({
+      x: startX,
+      y: 790,
+      width: totalTablesWidth,
+      height: 20,
+      color: rgb(0.9,0.9,0.9)
+    });
 
-  page.drawImage(logoImage,{
-    x: 40,
-    y: 775,
-    width: 90,
-    height: 35
-  });
+    const titulo = "FORMULARIO EXTRA SEGURO";
+    const tituloWidth = fontBold.widthOfTextAtSize(titulo, 12);
 
-}
-     // =================================================
-    // FORMULARIO EXTRA SEGURO
-    // =================================================
-            page.drawRectangle({
-        x: startX,
-        y: 790,
-        width: totalTablesWidth,
+    page.drawText(titulo, {
+      x: startX + (totalTablesWidth - tituloWidth) / 2,
+      y: 794,
+      size: 12,
+      font: fontBold,
+    });
+
+    function drawLabelField(label, name, x, y, width){
+      page.drawRectangle({
+        x, y: y - 6,
+        width: width + 60,
         height: 20,
-        color: rgb(0.9,0.9,0.9)
-      });
-      
-      const titulo = "FORMULARIO EXTRA SEGURO";
-      const tituloSize = 12;
-      
-      const tituloWidth = fontBold.widthOfTextAtSize(titulo, tituloSize);
-      const tituloX = startX + (totalTablesWidth - tituloWidth) / 2;
-      
-      page.drawText(titulo, {
-        x: tituloX,
-        y: 794,
-        size: tituloSize,
-        font: fontBold,
+        borderWidth: 0.5,
       });
 
-    
-  // =================================================
-  // CAMPOS SUPERIORES (ALINEADOS + CENTRADO VERTICAL)
-  // =================================================
+      page.drawText(label,{
+        x: x + 4,
+        y,
+        size: 9,
+        font
+      });
 
-function drawLabelField(label, name, x, y, width){
+      const f = getOrCreateField(form, name);
+      f.setText(data[name] || "");
 
-  const labelOffset = 60;
-  const boxWidth = width + labelOffset;
-  const boxHeight = 20;
+      f.addToPage(page,{
+        x: x + 60,
+        y: y - 5,
+        width,
+        height: 12,
+      });
+    }
 
-  // BORDE EXTERNO
-  page.drawRectangle({
-    x: x,
-    y: y - 6,
-    width: boxWidth,
-    height: boxHeight,
-    borderWidth: 0.5,
-    borderColor: rgb(0,0,0)
-  });
-
-  // TEXTO
-  page.drawText(label,{
-    x: x + 4,
-    y: y,
-    size: 9,
-    font
-  });
-
-  // 👉 CENTRADO VERTICAL (esto sí lo mantenemos)
-  const fieldHeight = 12;
-  const fieldY = (y - 6) + (boxHeight - fieldHeight) / 2;
-
-  // CAMPO EDITABLE (SIN TOCAR BORDES)
-  const f = form.createTextField(name);
-  f.setText(data[name] || "");
-
-  f.addToPage(page,{
-    x: x + 60,
-    y: y - 5,
-    width: width,
-    height: 12,
-    borderWidth: 0
-  });
-
-}
-
-
-// =================================================
-// CAMPOS (ALINEADOS CON EL TITULO)
-// =================================================
-
-drawLabelField("Taller N°:", "taller", startX, 750, 100);
-drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
-drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
-
-
-
-
-    // =================================================
-    // BLOQUE 2 COLUMNAS (IMAGEN + CAMPOS)
-    // =================================================
+    drawLabelField("Taller N°:", "taller", startX, 750, 100);
+    drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
+    drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
 
     const leftColX = 40;
     const leftColWidth = 330;
-
     const rightColX = leftColX + leftColWidth + 15;
-    
     const topY = 700;
     const imageHeight = 170;
 
-    // Imagen parabrisas
-   if(data.canvasImage){
+    if(data.canvasImage && data.canvasImage.includes(",")){
+      const img = await pdfDoc.embedPng(
+        Buffer.from(data.canvasImage.split(",")[1],"base64")
+      );
 
-  const img = await pdfDoc.embedPng(
-    Buffer.from(data.canvasImage.split(",")[1],"base64")
-  );
+      page.drawImage(img,{
+        x: leftColX + 1,
+        y: topY - imageHeight + 1,
+        width: leftColWidth - 2,
+        height: imageHeight - 2
+      });
+    }
 
-  page.drawImage(img,{
-  x: leftColX + 1,
-  y: topY - imageHeight + 1,
-  width: leftColWidth - 2,
-  height: imageHeight - 2
-  });
+    const fila1Y = topY - 20;
 
-}
-
-
-// =============================================
-//     SINIESTRO + AÑO (BORDE ÚNICO)
-// =============================================
-
-
-const fila1Y = topY - 20;
-const filaHeight = 20;
-const filaWidth = 170;
-
-// BORDE GENERAL
-page.drawRectangle({
-  x: rightColX,
-  y: fila1Y - 8,
-  width: filaWidth,
-  height: filaHeight,
-  borderWidth: 0.5,
-});
-
-// TEXTO SINIESTRO
-page.drawText("Siniestro:", {
-  x: rightColX + 4,
-  y: fila1Y,
-  size: 9,
-  font: font
-});
-
-// CAMPO SINIESTRO
-const siniestroField = form.createTextField("siniestro");
-siniestroField.setText(data.siniestro1 || "");
-
-siniestroField.addToPage(page, {
-  x: rightColX + 50,
-  y: fila1Y - 5,
-  width: 45,
-  height: 12,
-});
-
-// ✅ SOLO ESTO
-siniestroField.updateAppearances(font, {
-  textColor: rgb(0, 0, 0),
-});
-    
-// TEXTO AÑO
-page.drawText("Año:", {
-  x: rightColX + 100,
-  y: fila1Y,
-  size: 9,
-  font: font
-});
-
-// CAMPO AÑO
-const anioField = form.createTextField("anio");
-anioField.setText(data.siniestro2 || "");
-
-anioField.addToPage(page, {
-  x: rightColX + 125,
-  y: fila1Y - 5,
-  width: 35,
-  height: 12,
-});
-
-// ✅ SOLO ESTO
-anioField.updateAppearances(font, {
-  textColor: rgb(0, 0, 0),
-});
-   
-// =============================================
-//         DIFICULTAD VISUAL
-// =============================================
-
-const dificultadY = fila1Y - 35;
-const dificultadWidth = startX + totalTablesWidth - rightColX;
-
-// BORDE GENERAL
-page.drawRectangle({
-  x: rightColX,
-  y: dificultadY - 8,
-  width: dificultadWidth,
-  height: 20,
-  borderWidth: 0.5,
-  });
-
-// TEXTO
-page.drawText("¿Dificultad visual?:", {
-  x: rightColX + 4,
-  y: dificultadY,
-  size: 9,
-  font: font
-});
-
-// CAMPO SIN BORDE
-const dificultadVisualField = form.createTextField("dificultadVisual");
-dificultadVisualField.setText(data.dificultadVisual || "");
-
-  
-
-dificultadVisualField.addToPage(page,{
-  x: rightColX + 105,
-  y: dificultadY - 5,
-  width: dificultadWidth - 110,
-  height: 12,
-});
-    
-// =================================================
-// TEXTO INFORMATIVO (CENTRADO REAL)
-// =================================================
-
-const infoY = 480;
-const boxHeight = 18;
-
-function drawBorderBox(x, y, width, height) {
-  page.drawLine({ start: { x, y }, end: { x: x + width, y }, thickness: 0.5 });
-  page.drawLine({ start: { x, y }, end: { x, y: y + height }, thickness: 0.5 });
-  page.drawLine({ start: { x: x + width, y }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-  page.drawLine({ start: { x, y: y + height }, end: { x: x + width, y: y + height }, thickness: 0.5 });
-}
-
-function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
-
-  const lines = text.split("\n");
-  const lineHeight = size + 2;
-
-  lines.forEach((line, index) => {
-
-    const textWidth = fontUsed.widthOfTextAtSize(line, size);
-
-    const textX = boxX + (boxWidth - textWidth) / 2;
-
-    const textY =
-      boxY +
-      (boxHeight / 2) -
-      (lineHeight * lines.length) / 2 +
-      (lines.length - 1 - index) * lineHeight +
-      2;
-
-    page.drawText(line, {
-      x: textX,
-      y: textY,
-      size: size,
-      font: fontUsed,
-      color: rgb(0,0,0)
+    page.drawRectangle({
+      x: rightColX,
+      y: fila1Y - 8,
+      width: 170,
+      height: 20,
+      borderWidth: 0.5,
     });
-  });
-}
 
-// Primera línea
-drawBorderBox(startX, infoY, totalTablesWidth, boxHeight);
+    page.drawText("Siniestro:", {
+      x: rightColX + 4,
+      y: fila1Y,
+      size: 9,
+      font
+    });
 
-drawCenteredText(
-  "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-  startX,
-  infoY,
-  totalTablesWidth,
-  fontBold,
-  8
-);
+    const siniestroField = getOrCreateField(form, "siniestro");
+    siniestroField.setText(data.siniestro1 || "");
+    siniestroField.addToPage(page,{
+      x: rightColX + 50,
+      y: fila1Y - 5,
+      width: 45,
+      height: 12,
+    });
 
-// Segunda línea
-drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight);
+    page.drawText("Año:", {
+      x: rightColX + 100,
+      y: fila1Y,
+      size: 9,
+      font
+    });
 
-drawCenteredText(
-  "ANULA / REEMPLAZA EXTRA SEGURO DE FECHA:",
-  startX,
-  infoY - boxHeight,
-  totalTablesWidth,
-  fontBold,
-  8
-);
+    const anioField = getOrCreateField(form, "anio");
+    anioField.setText(data.siniestro2 || "");
+    anioField.addToPage(page,{
+      x: rightColX + 125,
+      y: fila1Y - 5,
+      width: 35,
+      height: 12,
+    });
 
-    // =================================================
-    // TABLAS
-    // =================================================
+    const dificultadY = fila1Y - 35;
+    const dificultadWidth = startX + totalTablesWidth - rightColX;
+
+    page.drawRectangle({
+      x: rightColX,
+      y: dificultadY - 8,
+      width: dificultadWidth,
+      height: 20,
+      borderWidth: 0.5,
+    });
+
+    page.drawText("¿Dificultad visual?:", {
+      x: rightColX + 4,
+      y: dificultadY,
+      size: 9,
+      font
+    });
+
+    const dificultadVisualField = getOrCreateField(form, "dificultadVisual");
+    dificultadVisualField.setText(data.dificultadVisual || "");
+    dificultadVisualField.addToPage(page,{
+      x: rightColX + 105,
+      y: dificultadY - 5,
+      width: dificultadWidth - 110,
+      height: 12,
+    });
 
     function drawTabla(tabla, startX, startY){
-
       const colW = [140,50,50];
-      const headers = ["PIEZA","CHAPA","PINTURA"];
       const rowH = 16;
       let y = startY;
-
-      headers.forEach((h,i)=>{
-        const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0);
-
-        page.drawRectangle({
-          x, y,
-          width:colW[i],
-          height:rowH,
-          color:rgb(0.9,0.9,0.9),
-          borderWidth:0.5,
-          borderColor: rgb(0,0,0)
-        });
-
-        page.drawText(h,{
-          x:x+4,
-          y:y+4,
-          size:8,
-          font:fontBold,
-          color: rgb(0,0,0)
-        });
-      });
-
-      y -= rowH;
 
       (tabla || []).forEach((row,i)=>{
         const vals = [row.pieza, row.chapa, row.pintura];
@@ -491,17 +320,9 @@ drawCenteredText(
         vals.forEach((val,c)=>{
           const x = startX + colW.slice(0,c).reduce((a,b)=>a+b,0);
 
-          const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
+          const f = getOrCreateField(form, `tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
-          
-          
-       //  tamaño fijo para todos
-          
-          // 🔹 pieza queda alineada izquierda pero tamaño fijo
-          if (c === 0) {
-            f.setAlignment(0);
-          }
-          
+
           f.addToPage(page,{
             x,
             y,
@@ -525,53 +346,23 @@ drawCenteredText(
     }
 
     const tableStartY = 415;
-
     const endY1 = drawTabla(data.tabla1, startX, tableStartY);
     const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
-
     const bottomTablesY = Math.min(endY1, endY2);
 
-    // =================================================
-    // CAMPO POR CARS (AL FINAL)
-    // =================================================
+    const quienField = getOrCreateField(form, "quien");
+    quienField.setText(data.quien || "");
+    quienField.addToPage(page,{
+      x: startX + 65,
+      y: bottomTablesY - 24,
+      width: 140,
+      height: 14
+    });
 
-    const quienY = bottomTablesY - 20;
-
-page.drawText("POR CARS:", {
-  x: startX,
-  y: quienY,
-  size: 9,
-  font: font
-});
-
-const quienStartX = startX + 65;
-const quienWidth = 140;
-
-const quienField = form.createTextField("quien");
-quienField.setText(data.quien || "");
-
-
-quienField.addToPage(page,{
-  x: quienStartX,
-  y: quienY - 4,
-  width: quienWidth,
-  height: 14
-});
-
-page.drawRectangle({
-  x: quienStartX,
-  y: quienY - 4,
-  width: quienWidth,
-  height: 14,
-  borderWidth: 0.5,
-});
-
-    // =================================================
-    // GUARDAR
-    // =================================================
     form.updateFieldAppearances(font);
 
     console.log("ANTES DE SAVE");
+
     const pdfBytes = await pdfDoc.save();
 
     const token = await getAccessToken();
@@ -603,7 +394,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
-
 
 
 

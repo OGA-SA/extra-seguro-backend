@@ -309,11 +309,91 @@ app.post("/generate-pdf-editable", async (req, res) => {
       height: 12,
     });
 
+// ================================================= 
+// TEXTO INFORMATIVO (CENTRADO REAL) 
+// ================================================= 
+    
+const infoY = 480; 
+const boxHeight = 18; 
+    
+function drawBorderBox(x, y, width, height) { 
+  page.drawLine({ start: { x, y }, 
+                 end: { x: x + width, y }, 
+                 thickness: 0.5 }); 
+  page.drawLine({ start: { x, y }, 
+                 end: { x, y: y + height }, 
+                 thickness: 0.5 }); 
+  page.drawLine({ start: { x: x + width, y }, 
+                 end: { x: x + width, y: y + height },
+                 thickness: 0.5 }); 
+  page.drawLine({ start: { x, y: y + height }, 
+                 end: { x: x + width, y: y + height }, 
+                 thickness: 0.5 }); 
+} 
+    
+function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) { 
+  const lines = text.split("\n"); 
+  const lineHeight = size + 2; 
+  lines.forEach((line, index) => { 
+    const textWidth = fontUsed.widthOfTextAtSize(line, size); 
+    const textX = boxX + (boxWidth - textWidth) / 2; 
+    const textY = boxY + (boxHeight / 2) - 
+      (lineHeight * lines.length) / 2 + 
+      (lines.length - 1 - index) * lineHeight + 2; 
+    
+    page.drawText(line, { 
+      x: textX, 
+      y: textY, 
+      size: size, 
+      font: fontUsed, 
+      color: rgb(0,0,0) }); }); 
+} 
+  // Primera línea 
+    rawBorderBox(startX, infoY, totalTablesWidth, boxHeight); 
+    drawCenteredText( "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES", 
+                     startX, 
+                     infoY, 
+                     totalTablesWidth, 
+                     fontBold, 
+                     8 
+                    ); 
+    
+    // Segunda línea 
+    drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight); 
+    drawCenteredText( "ANULA / REEMPLAZA EXTRA SEGURO DE FECHA:", 
+                     startX, 
+                     infoY - boxHeight,
+                     totalTablesWidth, 
+                     fontBold, 
+                     8 
+                    );
+
+    // ================================================= // TABLAS // =================================================
+
+    
     function drawTabla(tabla, startX, startY){
       const colW = [140,50,50];
       const rowH = 16;
       let y = startY;
 
+      headers.forEach((h,i)=>{ 
+        const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0); 
+        page.drawRectangle({ x, y, width:colW[i], 
+                            height:rowH, 
+                            color:rgb(0.9,0.9,0.9), 
+                            borderWidth:0.5, 
+                            borderColor: rgb(0,0,0) }); 
+        
+        page.drawText(h,{ 
+          x:x+4, 
+          y:y+4, 
+          size:8, 
+          font:fontBold, 
+          color: rgb(0,0,0) 
+        }); 
+      }); 
+      y -= rowH;
+      
       (tabla || []).forEach((row,i)=>{
         const vals = [row.pieza, row.chapa, row.pintura];
 
@@ -350,6 +430,17 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
     const bottomTablesY = Math.min(endY1, endY2);
 
+    // ================================================= // CAMPO POR CARS (AL FINAL) // =================================================
+
+    const quienY = bottomTablesY - 20;
+    
+    page.drawText("POR CARS:", { 
+      x: startX, 
+      y: quienY, 
+      size: 9, 
+      font: font 
+    });
+    
     const quienField = getOrCreateField(form, "quien");
     quienField.setText(data.quien || "");
     quienField.addToPage(page,{
@@ -357,6 +448,14 @@ app.post("/generate-pdf-editable", async (req, res) => {
       y: bottomTablesY - 24,
       width: 140,
       height: 14
+    });
+
+    page.drawRectangle({ 
+      x: quienStartX, 
+      y: quienY - 4, 
+      width: quienWidth, 
+      height: 14, 
+      borderWidth: 0.5, 
     });
 
     form.updateFieldAppearances(font);

@@ -350,6 +350,7 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
 } 
   // Primera línea 
     drawBorderBox(startX, infoY, totalTablesWidth, boxHeight); 
+    
     drawCenteredText( "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES", 
                      startX, 
                      infoY, 
@@ -360,6 +361,7 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
     
     // Segunda línea 
     drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight); 
+    
     drawCenteredText( "ANULA / REEMPLAZA EXTRA SEGURO DE FECHA:", 
                      startX, 
                      infoY - boxHeight,
@@ -373,12 +375,15 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
     
     function drawTabla(tabla, startX, startY){
       const colW = [140,50,50];
+      const headers = ["PIEZA","CHAPA","PINTURA"];
       const rowH = 16;
       let y = startY;
 
       headers.forEach((h,i)=>{ 
         const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0); 
-        page.drawRectangle({ x, y, width:colW[i], 
+        
+        page.drawRectangle({ x, y, 
+                            width:colW[i], 
                             height:rowH, 
                             color:rgb(0.9,0.9,0.9), 
                             borderWidth:0.5, 
@@ -450,6 +455,9 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
       height: 14
     });
 
+    const quienStartX = startX + 65;
+    const quienWidth = 140;
+    
     page.drawRectangle({ 
       x: quienStartX, 
       y: quienY - 4, 

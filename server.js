@@ -466,7 +466,15 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
       borderWidth: 0.5, 
     });
 
-    form.updateFieldAppearances(font);
+    const fields = form.getFields();
+
+    fields.forEach(field => {
+      try {
+    field.updateAppearances(font, {
+      textColor: rgb(0, 0, 0),
+        });
+      } catch (e) {}
+      });
 
     console.log("ANTES DE SAVE");
 

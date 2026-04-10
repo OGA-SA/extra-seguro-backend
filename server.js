@@ -207,6 +207,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
 
       const f = getOrCreateField(form, name);
+
+      f.setFontSize(10);
       f.setText(data[name] || "");
 
       f.addToPage(page,{
@@ -258,7 +260,10 @@ app.post("/generate-pdf-editable", async (req, res) => {
     });
 
     const siniestroField = getOrCreateField(form, "siniestro");
+
+    siniestroField.setFontSize(10);
     siniestroField.setText(data.siniestro1 || "");
+    
     siniestroField.addToPage(page,{
       x: rightColX + 50,
       y: fila1Y - 5,
@@ -274,7 +279,10 @@ app.post("/generate-pdf-editable", async (req, res) => {
     });
 
     const anioField = getOrCreateField(form, "anio");
+    
+    anioField.setFontSize(10);
     anioField.setText(data.siniestro2 || "");
+    
     anioField.addToPage(page,{
       x: rightColX + 125,
       y: fila1Y - 5,
@@ -301,7 +309,10 @@ app.post("/generate-pdf-editable", async (req, res) => {
     });
 
     const dificultadVisualField = getOrCreateField(form, "dificultadVisual");
+
+    dificultadVisualField.setFontSize(10);
     dificultadVisualField.setText(data.dificultadVisual || "");
+    
     dificultadVisualField.addToPage(page,{
       x: rightColX + 105,
       y: dificultadY - 5,
@@ -467,16 +478,6 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
     });
 
     const fields = form.getFields();
-
-    fields.forEach(field => {
-      try {
-    field.updateAppearances(font, {
-      textColor: rgb(0, 0, 0),
-        });
-      } catch (e) {}
-      });
-
-    console.log("ANTES DE SAVE");
 
     const pdfBytes = await pdfDoc.save();
 

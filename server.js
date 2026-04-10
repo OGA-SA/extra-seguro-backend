@@ -349,7 +349,7 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
       color: rgb(0,0,0) }); }); 
 } 
   // Primera línea 
-    rawBorderBox(startX, infoY, totalTablesWidth, boxHeight); 
+    drawBorderBox(startX, infoY, totalTablesWidth, boxHeight); 
     drawCenteredText( "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES", 
                      startX, 
                      infoY, 

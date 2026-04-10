@@ -211,6 +211,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
       f.setFontSize(10);
       f.setText(data[name] || "");
 
+      f.defaultUpdateAppearances(font);
+
       f.addToPage(page,{
         x: x + 60,
         y: y - 5,
@@ -263,6 +265,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     siniestroField.setFontSize(10);
     siniestroField.setText(data.siniestro1 || "");
+
+    f.defaultUpdateAppearances(font);
     
     siniestroField.addToPage(page,{
       x: rightColX + 50,
@@ -282,6 +286,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
     
     anioField.setFontSize(10);
     anioField.setText(data.siniestro2 || "");
+
+    f.defaultUpdateAppearances(font);
     
     anioField.addToPage(page,{
       x: rightColX + 125,
@@ -312,6 +318,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     dificultadVisualField.setFontSize(10);
     dificultadVisualField.setText(data.dificultadVisual || "");
+
+    f.defaultUpdateAppearances(font);
     
     dificultadVisualField.addToPage(page,{
       x: rightColX + 105,
@@ -419,6 +427,8 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
           const f = getOrCreateField(form, `tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
 
+          f.defaultUpdateAppearances(font);
+
           f.addToPage(page,{
             x,
             y,
@@ -459,6 +469,9 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
     
     const quienField = getOrCreateField(form, "quien");
     quienField.setText(data.quien || "");
+    
+    f.defaultUpdateAppearances(font);
+    
     quienField.addToPage(page,{
       x: startX + 65,
       y: bottomTablesY - 24,
@@ -479,6 +492,8 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
 
     const fields = form.getFields();
 
+    form.updateFieldAppearances(font);
+    
     const pdfBytes = await pdfDoc.save();
 
     const token = await getAccessToken();

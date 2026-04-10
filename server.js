@@ -129,14 +129,20 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 // 🔥 FIX: evitar campos duplicados
 // =====================================================
 
-function getOrCreateField(form, name) {
-  try {
-    return form.getTextField(name);
-  } catch (e) {
-    return form.createTextField(name);
-  }
-}
+const { field: f, isNew } = getOrCreateField(form, name);
 
+f.setText(data[name] || "");
+f.setFontSize(10);
+
+// 👇 SOLO agregar si es nuevo
+if (isNew) {
+  f.addToPage(page,{
+    x: x + 60,
+    y: y - 5,
+    width,
+    height: 12,
+  });
+}
 // =====================================================
 // ================= PDF EDITABLE ======================
 // =====================================================

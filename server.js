@@ -266,7 +266,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     siniestroField.setFontSize(10);
     siniestroField.setText(data.siniestro1 || "");
 
-    f.defaultUpdateAppearances(font);
+    siniestroField.defaultUpdateAppearances(font);
     
     siniestroField.addToPage(page,{
       x: rightColX + 50,
@@ -287,7 +287,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     anioField.setFontSize(10);
     anioField.setText(data.siniestro2 || "");
 
-    f.defaultUpdateAppearances(font);
+    anioField.defaultUpdateAppearances(font);
     
     anioField.addToPage(page,{
       x: rightColX + 125,
@@ -319,7 +319,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     dificultadVisualField.setFontSize(10);
     dificultadVisualField.setText(data.dificultadVisual || "");
 
-    f.defaultUpdateAppearances(font);
+    dificultadVisualField.defaultUpdateAppearances(font);
     
     dificultadVisualField.addToPage(page,{
       x: rightColX + 105,
@@ -470,7 +470,7 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
     const quienField = getOrCreateField(form, "quien");
     quienField.setText(data.quien || "");
     
-    f.defaultUpdateAppearances(font);
+    quienField.defaultUpdateAppearances(font);
     
     quienField.addToPage(page,{
       x: startX + 65,

@@ -490,8 +490,6 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
       borderWidth: 0.5, 
     });
 
-    const fields = form.getFields();
-
     form.updateFieldAppearances(font);
     
     const pdfBytes = await pdfDoc.save();

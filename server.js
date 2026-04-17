@@ -90,14 +90,7 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
 
   return res.json();
 }
-//=================================================
-function getOrCreateField(form, name) {
-  try {
-    return form.getTextField(name);
-  } catch (e) {
-    return form.createTextField(name);
-  }
-}
+
 // =====================================================
 // ================= ENDPOINT ORIGINAL =================
 // =====================================================
@@ -201,11 +194,12 @@ app.post("/generate-pdf-editable", async (req, res) => {
         font
       });
 
-      const f = getOrCreateField(form, name);
-      f.setText(data[name] || "");
-      f.setFontSize(10);
-     
+       const f = form.createTextField(name);
 
+        f.setText(data[name] || "");
+        f.setFontSize(10);
+
+     
       f.addToPage(page,{
         x: x + 60,
         y: y - 5,
@@ -254,7 +248,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       font
     });
 
-    const siniestroField = getOrCreateField(form, "siniestro");
+    const siniestroField = form.createTextField("siniestro");
     siniestroField.setText(data.siniestro1 || "");
     siniestroField.setFontSize(10);
           
@@ -272,7 +266,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       font
     });
 
-    const anioField = getOrCreateField(form, "anio");
+    const anioField = form.createTextField("anio");
     anioField.setText(data.siniestro2 || "");
     anioField.setFontSize(10);
     
@@ -302,7 +296,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       font
     });
 
-    const dificultadVisualField = getOrCreateField(form, "dificultadVisual");
+    const dificultadVisualField = form.createTextField("dificultadVisual");
     dificultadVisualField.setText(data.dificultadVisual || "");
     dificultadVisualField.setFontSize(10);
     
@@ -411,7 +405,7 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
         vals.forEach((val,c)=>{
           const x = startX + colW.slice(0,c).reduce((a,b)=>a+b,0);
 
-          const f = getOrCreateField(form, `tbl_${startX}_${i}_${c}`);
+          const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
 
 
@@ -453,7 +447,7 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
       font: font 
     });
     
-    const quienField = getOrCreateField(form, "quien");
+    const quienField = form.createTextField("quien");
     quienField.setText(data.quien || "");
     
        

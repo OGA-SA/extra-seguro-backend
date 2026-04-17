@@ -179,6 +179,14 @@ app.post("/generate-pdf-editable", async (req, res) => {
       font: fontBold,
     });
 
+    function getField(name){
+      try {
+        return form.getTextField(name);
+      } catch {
+        return form.createTextField(name);
+      }
+    }
+
     function drawLabelField(label, name, x, y, width){
       page.drawRectangle({
         x, y: y - 6,
@@ -194,12 +202,10 @@ app.post("/generate-pdf-editable", async (req, res) => {
         font
       });
 
-       const f = form.createTextField(name);
+      const f = getField(name);
+      f.setText(data[name] || "");
+      f.setFontSize(10);
 
-        f.setText(data[name] || "");
-        f.setFontSize(10);
-
-     
       f.addToPage(page,{
         x: x + 60,
         y: y - 5,
@@ -233,201 +239,45 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     const fila1Y = topY - 20;
 
-    page.drawRectangle({
-      x: rightColX,
-      y: fila1Y - 8,
-      width: 170,
-      height: 20,
-      borderWidth: 0.5,
-    });
+    let f;
 
-    page.drawText("Siniestro:", {
-      x: rightColX + 4,
-      y: fila1Y,
-      size: 9,
-      font
-    });
+    f = getField("siniestro");
+    f.setText(data.siniestro1 || "");
+    f.setFontSize(10);
+    f.addToPage(page,{ x: rightColX + 50, y: fila1Y - 5, width: 45, height: 12 });
 
-    const siniestroField = form.createTextField("siniestro");
-    siniestroField.setText(data.siniestro1 || "");
-    siniestroField.setFontSize(10);
-          
-    siniestroField.addToPage(page,{
-      x: rightColX + 50,
-      y: fila1Y - 5,
-      width: 45,
-      height: 12,
-    });
+    f = getField("anio");
+    f.setText(data.siniestro2 || "");
+    f.setFontSize(10);
+    f.addToPage(page,{ x: rightColX + 125, y: fila1Y - 5, width: 35, height: 12 });
 
-    page.drawText("Año:", {
-      x: rightColX + 100,
-      y: fila1Y,
-      size: 9,
-      font
-    });
-
-    const anioField = form.createTextField("anio");
-    anioField.setText(data.siniestro2 || "");
-    anioField.setFontSize(10);
-    
-        
-    anioField.addToPage(page,{
-      x: rightColX + 125,
-      y: fila1Y - 5,
-      width: 35,
-      height: 12,
-    });
-
-    const dificultadY = fila1Y - 35;
-    const dificultadWidth = startX + totalTablesWidth - rightColX;
-
-    page.drawRectangle({
-      x: rightColX,
-      y: dificultadY - 8,
-      width: dificultadWidth,
-      height: 20,
-      borderWidth: 0.5,
-    });
-
-    page.drawText("¿Dificultad visual?:", {
-      x: rightColX + 4,
-      y: dificultadY,
-      size: 9,
-      font
-    });
-
-    const dificultadVisualField = form.createTextField("dificultadVisual");
-    dificultadVisualField.setText(data.dificultadVisual || "");
-    dificultadVisualField.setFontSize(10);
-    
-
-    
-    dificultadVisualField.addToPage(page,{
+    f = getField("dificultadVisual");
+    f.setText(data.dificultadVisual || "");
+    f.setFontSize(10);
+    f.addToPage(page,{
       x: rightColX + 105,
-      y: dificultadY - 5,
-      width: dificultadWidth - 110,
-      height: 12,
+      y: fila1Y - 40,
+      width: 120,
+      height: 12
     });
 
-// ================================================= 
-// TEXTO INFORMATIVO (CENTRADO REAL) 
-// ================================================= 
-    
-const infoY = 480; 
-const boxHeight = 18; 
-    
-function drawBorderBox(x, y, width, height) { 
-  page.drawLine({ start: { x, y }, 
-                 end: { x: x + width, y }, 
-                 thickness: 0.5 }); 
-  page.drawLine({ start: { x, y }, 
-                 end: { x, y: y + height }, 
-                 thickness: 0.5 }); 
-  page.drawLine({ start: { x: x + width, y }, 
-                 end: { x: x + width, y: y + height },
-                 thickness: 0.5 }); 
-  page.drawLine({ start: { x, y: y + height }, 
-                 end: { x: x + width, y: y + height }, 
-                 thickness: 0.5 }); 
-} 
-    
-function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) { 
-  const lines = text.split("\n"); 
-  const lineHeight = size + 2; 
-  lines.forEach((line, index) => { 
-    const textWidth = fontUsed.widthOfTextAtSize(line, size); 
-    const textX = boxX + (boxWidth - textWidth) / 2; 
-    const textY = boxY + (boxHeight / 2) - 
-      (lineHeight * lines.length) / 2 + 
-      (lines.length - 1 - index) * lineHeight + 2; 
-    
-    page.drawText(line, { 
-      x: textX, 
-      y: textY, 
-      size: size, 
-      font: fontUsed, 
-      color: rgb(0,0,0) }); }); 
-} 
-  // Primera línea 
-    drawBorderBox(startX, infoY, totalTablesWidth, boxHeight); 
-    
-    drawCenteredText( "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES", 
-                     startX, 
-                     infoY, 
-                     totalTablesWidth, 
-                     fontBold, 
-                     8 
-                    ); 
-    
-    // Segunda línea 
-    drawBorderBox(startX, infoY - boxHeight, totalTablesWidth, boxHeight); 
-    
-    drawCenteredText( "ANULA / REEMPLAZA EXTRA SEGURO DE FECHA:", 
-                     startX, 
-                     infoY - boxHeight,
-                     totalTablesWidth, 
-                     fontBold, 
-                     8 
-                    );
-
-    // ================================================= // TABLAS // =================================================
-
-    
     function drawTabla(tabla, startX, startY){
       const colW = [140,50,50];
-      const headers = ["PIEZA","CHAPA","PINTURA"];
       const rowH = 16;
       let y = startY;
 
-      headers.forEach((h,i)=>{ 
-        const x = startX + colW.slice(0,i).reduce((a,b)=>a+b,0); 
-        
-        page.drawRectangle({ x, y, 
-                            width:colW[i], 
-                            height:rowH, 
-                            color:rgb(0.9,0.9,0.9), 
-                            borderWidth:0.5, 
-                            borderColor: rgb(0,0,0) }); 
-        
-        page.drawText(h,{ 
-          x:x+4, 
-          y:y+4, 
-          size:8, 
-          font:fontBold, 
-          color: rgb(0,0,0) 
-        }); 
-      }); 
-      y -= rowH;
-      
       (tabla || []).forEach((row,i)=>{
-        if (!row) return; // 🔥 evita que rompa
-      
-        const vals = [
-          row.pieza || "",
-          row.chapa || "",
-          row.pintura || ""
-        ];
+        if (!row) return;
 
-        vals.forEach((val,c)=>{
-          const x = startX + colW.slice(0,c).reduce((a,b)=>a+b,0);
-
+        [row.pieza, row.chapa, row.pintura].forEach((val,c)=>{
           const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
           f.setText(val || "");
 
-
           f.addToPage(page,{
-            x,
+            x: startX + colW.slice(0,c).reduce((a,b)=>a+b,0),
             y,
             width: colW[c],
             height: rowH
-          });
-
-          page.drawRectangle({
-            x,
-            y,
-            width:colW[c],
-            height:rowH,
-            borderWidth:0.5,
           });
         });
 
@@ -438,25 +288,13 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
     }
 
     const tableStartY = 415;
-    const endY1 = drawTabla(data.tabla1, startX, tableStartY);
-    const endY2 = drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY);
-    const bottomTablesY = Math.min(endY1, endY2);
+    const bottomTablesY = Math.min(
+      drawTabla(data.tabla1, startX, tableStartY),
+      drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY)
+    );
 
-    // ================================================= // CAMPO POR CARS (AL FINAL) // =================================================
-
-    const quienY = bottomTablesY - 20;
-    
-    page.drawText("POR CARS:", { 
-      x: startX, 
-      y: quienY, 
-      size: 9, 
-      font: font 
-    });
-    
-    const quienField = form.createTextField("quien");
+    const quienField = getField("quien");
     quienField.setText(data.quien || "");
-    
-       
     quienField.addToPage(page,{
       x: startX + 65,
       y: bottomTablesY - 24,
@@ -464,19 +302,8 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
       height: 14
     });
 
-    const quienStartX = startX + 65;
-    const quienWidth = 140;
-    
-    page.drawRectangle({ 
-      x: quienStartX, 
-      y: quienY - 4, 
-      width: quienWidth, 
-      height: 14, 
-      borderWidth: 0.5, 
-    });
-
     form.updateFieldAppearances(font);
-    
+
     const pdfBytes = await pdfDoc.save();
 
     const token = await getAccessToken();
@@ -508,7 +335,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
-
 
 
 

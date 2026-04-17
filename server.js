@@ -218,7 +218,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const topY = 700;
     const imageHeight = 170;
 
-    if(data.canvasImage && data.canvasImage.includes(",")){
+    if (data.canvasImage && typeof data.canvasImage === "string" && data.canvasImage.includes(",")) {
       const img = await pdfDoc.embedPng(
         Buffer.from(data.canvasImage.split(",")[1],"base64")
       );
@@ -400,7 +400,13 @@ function drawCenteredText(text, boxX, boxY, boxWidth, fontUsed, size) {
       y -= rowH;
       
       (tabla || []).forEach((row,i)=>{
-        const vals = [row.pieza, row.chapa, row.pintura];
+        if (!row) return; // 🔥 evita que rompa
+      
+        const vals = [
+          row.pieza || "",
+          row.chapa || "",
+          row.pintura || ""
+        ];
 
         vals.forEach((val,c)=>{
           const x = startX + colW.slice(0,c).reduce((a,b)=>a+b,0);

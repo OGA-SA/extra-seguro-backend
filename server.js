@@ -329,7 +329,11 @@ app.post("/generate-pdf-editable", async (req, res) => {
     });
 
   } catch (err) {
-  console.error("PDF ERROR FULL:", err, err.stack);
+  
+console.error("❌ ERROR PDF EDITABLE:");
+  console.error(err);
+  console.error(err.stack);
+
   res.status(500).json({
     error: err.message,
     stack: err.stack });

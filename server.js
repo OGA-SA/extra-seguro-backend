@@ -302,6 +302,12 @@ app.post("/generate-pdf-editable", async (req, res) => {
       height: 14
     });
 
+    
+    form.getFields().forEach(field => {
+      if (field.setFontSize) {
+        field.setFontSize(10);
+      }
+    });
     form.updateFieldAppearances(font);
 
     const pdfBytes = await pdfDoc.save();

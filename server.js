@@ -328,11 +328,13 @@ app.post("/generate-pdf-editable", async (req, res) => {
       webUrl: result.webUrl
     });
 
-  } catch (err){
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
+  } catch (err) {
+  console.error("PDF ERROR FULL:", err, err.stack);
+  res.status(500).json({
+    error: err.message,
+    stack: err.stack
+  });
+
 
 // ================= START SERVER =================
 

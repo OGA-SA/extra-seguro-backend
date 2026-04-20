@@ -334,7 +334,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     error: err.message,
     stack: err.stack
   });
-
+}
 
 // ================= START SERVER =================
 

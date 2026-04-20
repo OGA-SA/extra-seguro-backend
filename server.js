@@ -203,15 +203,15 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
 
       const f = getField(name);
-      f.setText(data[name] || "");
-      f.setFontSize(10);
-
-      f.addToPage(page,{
+      
+       f.addToPage(page,{
         x: x + 60,
         y: y - 5,
         width,
         height: 12,
       });
+      
+      f.setText(data[name] || "");
     }
 
     drawLabelField("Taller N°:", "taller", startX, 750, 100);
@@ -308,6 +308,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
         field.setFontSize(10);
       }
     });
+    
     form.updateFieldAppearances(font);
 
     const pdfBytes = await pdfDoc.save();

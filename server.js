@@ -332,9 +332,9 @@ app.post("/generate-pdf-editable", async (req, res) => {
   console.error("PDF ERROR FULL:", err, err.stack);
   res.status(500).json({
     error: err.message,
-    stack: err.stack
-    });
-}
+    stack: err.stack });
+  }
+  });
 // ================= START SERVER =================
 
 const PORT = process.env.PORT || 10000;

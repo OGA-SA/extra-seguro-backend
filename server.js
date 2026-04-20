@@ -335,7 +335,6 @@ app.post("/generate-pdf-editable", async (req, res) => {
     stack: err.stack
     });
 }
-});
 // ================= START SERVER =================
 
 const PORT = process.env.PORT || 10000;

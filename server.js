@@ -22,6 +22,7 @@ const SITE_ID = process.env.SITE_ID;
 const DRIVE_ID = process.env.DRIVE_ID;
 
 const DEFAULT_FOLDER = process.env.FOLDER_PATH || "Extra Seguro";
+const allowedFolders = ["Formulario 1", "Extra Seguro", "Acta de Restos"];
 
 const allowedOrigins = (process.env.ALLOWED_ORIGIN || "")
   .split(",")
@@ -97,25 +98,30 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
   try {
-
     if (!req.file) {
       return res.status(400).json({ error: "Falta pdf" });
     }
 
     const filename = req.file.originalname;
 
+    const requestedFolder = req.body.folder?.trim();
+    const folder = allowedFolders.includes(requestedFolder)
+      ? requestedFolder
+      : DEFAULT_FOLDER;
+
     const token = await getAccessToken();
     const result = await uploadToSharePoint(
       token,
       req.file.buffer,
       filename,
-      DEFAULT_FOLDER
+      folder
     );
 
     res.json({
       ok: true,
       webUrl: result.webUrl,
-      name: result.name
+      name: result.name,
+      folder
     });
 
   } catch (e) {

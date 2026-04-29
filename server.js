@@ -248,17 +248,16 @@ app.post("/generate-pdf-editable", async (req, res) => {
     let f;
 
     f = getField("siniestro");
-    f.setText(data.siniestro1 || "");
     f.setFontSize(10);
     f.addToPage(page,{ x: rightColX + 50, y: fila1Y - 5, width: 45, height: 12 });
+    f.setText(data.siniestro1 || "");
 
     f = getField("anio");
-    f.setText(data.siniestro2 || "");
     f.setFontSize(10);
     f.addToPage(page,{ x: rightColX + 125, y: fila1Y - 5, width: 35, height: 12 });
-
-    f = getField("dificultadVisual");
-    f.setText(data.dificultadVisual || "");
+    f.setText(data.siniestro2 || "");
+    
+    f = getField("dificultadVisual");    
     f.setFontSize(10);
     f.addToPage(page,{
       x: rightColX + 105,
@@ -266,6 +265,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       width: 120,
       height: 12
     });
+    f.setText(data.dificultadVisual || "");
 
     function drawTabla(tabla, startX, startY){
       const colW = [140,50,50];
@@ -300,14 +300,13 @@ app.post("/generate-pdf-editable", async (req, res) => {
     );
 
     const quienField = getField("quien");
-    quienField.setText(data.quien || "");
     quienField.addToPage(page,{
       x: startX + 65,
       y: bottomTablesY - 24,
       width: 140,
       height: 14
     });
-
+   quienField.setText(data.quien || "");
     
     form.getFields().forEach(field => {
       if (field.setFontSize) {
@@ -317,7 +316,9 @@ app.post("/generate-pdf-editable", async (req, res) => {
     
     form.updateFieldAppearances(font);
 
-    const pdfBytes = await pdfDoc.save();
+   const pdfBytes = await pdfDoc.save({
+      useObjectStreams: false,
+        });
 
     const token = await getAccessToken();
     const filename = `editable_${Date.now()}.pdf`;

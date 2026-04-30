@@ -18,7 +18,6 @@ app.use(express.urlencoded({ limit: "20mb", extended: true }));
 const TENANT_ID = process.env.TENANT_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const SITE_ID = process.env.SITE_ID;
 const DRIVE_ID = process.env.DRIVE_ID;
 
 const DEFAULT_FOLDER = process.env.FOLDER_PATH || "Extra Seguro";
@@ -32,15 +31,14 @@ const allowedOrigins = (process.env.ALLOWED_ORIGIN || "")
 
 app.use(cors({
   origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
-  methods: ["POST","OPTIONS","GET"]
+  methods: ["POST", "OPTIONS", "GET"]
 }));
 
 app.options("*", cors());
 
 // ================= SANITY =================
 
-app.get("/", (req,res)=>res.send("✅ Backend funcionando"));
-
+app.get("/", (req, res) => res.send("Backend funcionando"));
 
 // ================= TOKEN =================
 
@@ -61,10 +59,13 @@ async function getAccessToken() {
   });
 
   const data = await r.json();
-  if (!r.ok) throw new Error(JSON.stringify(data));
+
+  if (!r.ok) {
+    throw new Error(JSON.stringify(data));
+  }
+
   return data.access_token;
 }
-
 
 // ================= SHAREPOINT UPLOAD =================
 
@@ -75,7 +76,7 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
   const uploadUrl =
     `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
 
-  const res = await fetch(uploadUrl, {
+  const response = await fetch(uploadUrl, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -84,12 +85,43 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
     body: buffer
   });
 
-  if (!res.ok) {
-    const text = await res.text();
+  if (!response.ok) {
+    const text = await response.text();
     throw new Error(text);
   }
 
-  return res.json();
+  return response.json();
+}
+
+function textValue(value) {
+  if (value === undefined || value === null) return "";
+  return String(value);
+}
+
+async function embedDataUrlImage(pdfDoc, dataUrl) {
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.includes(",")) {
+    return null;
+  }
+
+  const match = dataUrl.match(/^data:image\/(png|jpg|jpeg);base64,/i);
+  if (!match) {
+    return null;
+  }
+
+  const imageType = match[1].toLowerCase();
+  const base64 = dataUrl.split(",")[1];
+
+  if (!base64) {
+    return null;
+  }
+
+  const bytes = Buffer.from(base64, "base64");
+
+  if (imageType === "png") {
+    return pdfDoc.embedPng(bytes);
+  }
+
+  return pdfDoc.embedJpg(bytes);
 }
 
 // =====================================================
@@ -110,6 +142,7 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       : DEFAULT_FOLDER;
 
     const token = await getAccessToken();
+
     const result = await uploadToSharePoint(
       token,
       req.file.buffer,
@@ -124,12 +157,15 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       folder
     });
 
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
+  } catch (error) {
+    console.error("ERROR /upload:");
+    console.error(error);
+
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
-
 
 // =====================================================
 // ================= PDF EDITABLE ======================
@@ -137,9 +173,8 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 
 app.post("/generate-pdf-editable", async (req, res) => {
   try {
-
-    const data = req.body;
-    console.log("DATA RECIBIDA:", data);
+    const data = req.body || {};
+    console.log("DATA RECIBIDA PDF EDITABLE:", data);
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]);
@@ -156,15 +191,19 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const logoPath = path.join(__dirname, "cars.jpg");
 
     if (fs.existsSync(logoPath)) {
-      const logoBytes = fs.readFileSync(logoPath);
-      const logoImage = await pdfDoc.embedJpg(logoBytes);
+      try {
+        const logoBytes = fs.readFileSync(logoPath);
+        const logoImage = await pdfDoc.embedJpg(logoBytes);
 
-      page.drawImage(logoImage,{
-        x: 40,
-        y: 775,
-        width: 90,
-        height: 35
-      });
+        page.drawImage(logoImage, {
+          x: 40,
+          y: 775,
+          width: 90,
+          height: 35
+        });
+      } catch (logoError) {
+        console.warn("No se pudo insertar el logo:", logoError.message);
+      }
     }
 
     page.drawRectangle({
@@ -172,7 +211,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       y: 790,
       width: totalTablesWidth,
       height: 20,
-      color: rgb(0.9,0.9,0.9)
+      color: rgb(0.9, 0.9, 0.9)
     });
 
     const titulo = "FORMULARIO EXTRA SEGURO";
@@ -185,7 +224,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       font: fontBold,
     });
 
-    function getField(name){
+    function getField(name) {
       try {
         return form.getTextField(name);
       } catch {
@@ -193,36 +232,46 @@ app.post("/generate-pdf-editable", async (req, res) => {
       }
     }
 
-    function drawLabelField(label, name, x, y, width){
+    function addTextField(name, value, x, y, width, height, fontSize = 10) {
+      const field = getField(name);
+      field.setText(textValue(value));
+      field.setFontSize(fontSize);
+
+      field.addToPage(page, {
+        x,
+        y,
+        width,
+        height,
+        borderWidth: 0.3,
+        borderColor: rgb(0.65, 0.65, 0.65),
+        backgroundColor: rgb(1, 1, 1)
+      });
+
+      return field;
+    }
+
+    function drawLabelField(label, name, value, x, y, width) {
       page.drawRectangle({
-        x, y: y - 6,
+        x,
+        y: y - 6,
         width: width + 60,
         height: 20,
         borderWidth: 0.5,
       });
 
-      page.drawText(label,{
+      page.drawText(label, {
         x: x + 4,
         y,
         size: 9,
         font
       });
 
-      const f = getField(name);
-      
-       f.addToPage(page,{
-        x: x + 60,
-        y: y - 5,
-        width,
-        height: 12,
-      });
-      
-      f.setText(data[name] || "");
+      addTextField(name, value, x + 60, y - 5, width, 12, 10);
     }
 
-    drawLabelField("Taller N°:", "taller", startX, 750, 100);
-    drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
-    drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
+    drawLabelField("Taller N°:", "taller", data.taller, startX, 750, 100);
+    drawLabelField("Serie y N°:", "serieNumero", data.serieNumero, startX + 170, 750, 100);
+    drawLabelField("Fecha:", "fecha", data.fecha, startX + 340, 750, 80);
 
     const leftColX = 40;
     const leftColWidth = 330;
@@ -230,61 +279,132 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const topY = 700;
     const imageHeight = 170;
 
-    if (data.canvasImage && typeof data.canvasImage === "string" && data.canvasImage.includes(",")) {
-      const img = await pdfDoc.embedPng(
-        Buffer.from(data.canvasImage.split(",")[1],"base64")
-      );
+    page.drawRectangle({
+      x: leftColX,
+      y: topY - imageHeight,
+      width: leftColWidth,
+      height: imageHeight,
+      borderWidth: 0.5,
+      borderColor: rgb(0.4, 0.4, 0.4)
+    });
 
-      page.drawImage(img,{
-        x: leftColX + 1,
-        y: topY - imageHeight + 1,
-        width: leftColWidth - 2,
-        height: imageHeight - 2
-      });
+    try {
+      const canvasImage = await embedDataUrlImage(pdfDoc, data.canvasImage);
+
+      if (canvasImage) {
+        page.drawImage(canvasImage, {
+          x: leftColX + 1,
+          y: topY - imageHeight + 1,
+          width: leftColWidth - 2,
+          height: imageHeight - 2
+        });
+      }
+    } catch (imageError) {
+      console.warn("No se pudo insertar la imagen del canvas:", imageError.message);
     }
 
     const fila1Y = topY - 20;
 
-    let f;
-
-    f = getField("siniestro");
-    f.setFontSize(10);
-    f.addToPage(page,{ x: rightColX + 50, y: fila1Y - 5, width: 45, height: 12 });
-    f.setText(data.siniestro1 || "");
-
-    f = getField("anio");
-    f.setFontSize(10);
-    f.addToPage(page,{ x: rightColX + 125, y: fila1Y - 5, width: 35, height: 12 });
-    f.setText(data.siniestro2 || "");
-    
-    f = getField("dificultadVisual");    
-    f.setFontSize(10);
-    f.addToPage(page,{
-      x: rightColX + 105,
-      y: fila1Y - 40,
-      width: 120,
-      height: 12
+    page.drawText("Siniestro:", {
+      x: rightColX,
+      y: fila1Y,
+      size: 9,
+      font
     });
-    f.setText(data.dificultadVisual || "");
 
-    function drawTabla(tabla, startX, startY){
-      const colW = [140,50,50];
+    addTextField(
+      "siniestro",
+      data.siniestro1,
+      rightColX + 50,
+      fila1Y - 5,
+      45,
+      12,
+      10
+    );
+
+    page.drawText("Año:", {
+      x: rightColX + 100,
+      y: fila1Y,
+      size: 9,
+      font
+    });
+
+    addTextField(
+      "anio",
+      data.siniestro2,
+      rightColX + 125,
+      fila1Y - 5,
+      35,
+      12,
+      10
+    );
+
+    page.drawText("Dificultad visual:", {
+      x: rightColX,
+      y: fila1Y - 35,
+      size: 9,
+      font
+    });
+
+    addTextField(
+      "dificultadVisual",
+      data.dificultadVisual,
+      rightColX + 105,
+      fila1Y - 40,
+      120,
+      12,
+      10
+    );
+
+    function drawTabla(tabla, prefix, tableX, startY) {
+      const colW = [140, 50, 50];
       const rowH = 16;
       let y = startY;
 
-      (tabla || []).forEach((row,i)=>{
-        if (!row) return;
+      const headers = ["Pieza", "Chapa", "Pintura"];
 
-        [row.pieza, row.chapa, row.pintura].forEach((val,c)=>{
-          const f = form.createTextField(`tbl_${startX}_${i}_${c}`);
-          f.setText(val || "");
+      headers.forEach((header, index) => {
+        const x = tableX + colW.slice(0, index).reduce((a, b) => a + b, 0);
 
-          f.addToPage(page,{
-            x: startX + colW.slice(0,c).reduce((a,b)=>a+b,0),
+        page.drawRectangle({
+          x,
+          y,
+          width: colW[index],
+          height: rowH,
+          color: rgb(0.9, 0.9, 0.9),
+          borderWidth: 0.5,
+          borderColor: rgb(0.4, 0.4, 0.4)
+        });
+
+        page.drawText(header, {
+          x: x + 4,
+          y: y + 4,
+          size: 8,
+          font: fontBold
+        });
+      });
+
+      y -= rowH;
+
+      (Array.isArray(tabla) ? tabla : []).forEach((row, rowIndex) => {
+        const values = [
+          row?.pieza || "",
+          row?.chapa || "",
+          row?.pintura || ""
+        ];
+
+        values.forEach((value, colIndex) => {
+          const x = tableX + colW.slice(0, colIndex).reduce((a, b) => a + b, 0);
+
+          addTextField(
+            `${prefix}_${rowIndex}_${colIndex}`,
+            value,
+            x,
             y,
-            width: colW[c],
-            height: rowH
-          });
+            colW[colIndex],
+            rowH,
+            8
+          );
         });
 
         y -= rowH;
@@ -294,59 +414,69 @@ app.post("/generate-pdf-editable", async (req, res) => {
     }
 
     const tableStartY = 415;
+
     const bottomTablesY = Math.min(
-      drawTabla(data.tabla1, startX, tableStartY),
-      drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY)
+      drawTabla(data.tabla1, "tabla1", startX, tableStartY),
+      drawTabla(data.tabla2, "tabla2", startX + tableWidth + gap, tableStartY)
     );
 
-    const quienField = getField("quien");
-    quienField.addToPage(page,{
-      x: startX + 65,
-      y: bottomTablesY - 24,
-      width: 140,
-      height: 14
+    page.drawText("Quien realiza:", {
+      x: startX,
+      y: bottomTablesY - 20,
+      size: 9,
+      font
     });
-   quienField.setText(data.quien || "");
-    
-    form.getFields().forEach(field => {
-      if (field.setFontSize) {
-        field.setFontSize(10);
-      }
-    });
-    
+
+    addTextField(
+      "quien",
+      data.quien,
+      startX + 65,
+      bottomTablesY - 24,
+      140,
+      14,
+      10
+    );
+
     form.updateFieldAppearances(font);
 
-   const pdfBytes = await pdfDoc.save({
-      useObjectStreams: false,
-        });
+    const pdfBytes = await pdfDoc.save({
+      useObjectStreams: false
+    });
 
     const token = await getAccessToken();
     const filename = `editable_${Date.now()}.pdf`;
+
+    const requestedFolder = data.folder?.trim();
+    const folder = allowedFolders.includes(requestedFolder)
+      ? requestedFolder
+      : DEFAULT_FOLDER;
 
     const result = await uploadToSharePoint(
       token,
       Buffer.from(pdfBytes),
       filename,
-      DEFAULT_FOLDER
+      folder
     );
 
     res.json({
-      ok:true,
+      ok: true,
       name: filename,
-      webUrl: result.webUrl
+      webUrl: result.webUrl,
+      folder
     });
 
-  } catch (err) {
-  
-console.error("❌ ERROR PDF EDITABLE:");
-  console.error(err);
-  console.error(err.stack);
+  } catch (error) {
+    console.error("ERROR PDF EDITABLE:");
+    console.error(error);
+    console.error(error.stack);
 
-  res.status(500).json({
-    error: err.message,
-    stack: err.stack });
+    res.status(500).json({
+      error: error.message,
+      stack: error.stack
+    });
   }
-  });
+});
+
 // ================= START SERVER =================
 
 const PORT = process.env.PORT || 10000;
@@ -354,6 +484,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

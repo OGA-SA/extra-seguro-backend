@@ -272,11 +272,12 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     stage = "cabecera";
 
-    drawLabelField("Taller N°:", "taller", data.taller, 55, 718, 190, 24, 62, 9);
-    drawLabelField("Serie y N°:", "serieNumero", data.serieNumero, 265, 718, 185, 24, 72, 9);
-    drawLabelField("Fecha:", "fecha", formatDate(data.fecha), 470, 718, 80, 24, 38, 9);
+    drawLabelField("Taller N°:", "taller", data.taller, 55, 718, 170, 24, 72, 9);
+    drawLabelField("Serie y N°:", "serieNumero", data.serieNumero, 245, 718, 185, 24, 92, 9);
+    drawLabelField("Fecha:", "fecha", formatDate(data.fecha), 450, 718, 100, 24, 38, 9);
 
-    const leftColX = 48;
+
+    const leftColX = 48;  
     const canvasY = 525;
     const canvasW = 330;
     const canvasH = 165;
@@ -313,10 +314,36 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     stage = "campos_derecha";
 
-    drawLabelField("Siniestro:", "siniestro", data.siniestro1, 405, 650, 145, 24, 58, 9);
-    page.drawText("-", { x: 493, y: 657, size: 10, font, color: black });
-    page.drawText("Año:", { x: 502, y: 657, size: 9, font, color: black });
-    addField("anio", data.siniestro2, 526, 653, 20, 14, 9);
+    drawBox(405, 650, 145, 24, { borderColor: borderGray });
+
+    page.drawText("Siniestro:", {
+      x: 410,
+      y: 657,
+      size: 9,
+      font,
+      color: black
+    });
+    
+    addField("siniestro", data.siniestro1, 465, 653, 34, 14, 9);
+    
+    page.drawText("-", {
+      x: 502,
+      y: 657,
+      size: 10,
+      font,
+      color: black
+    });
+    
+    page.drawText("Año:", {
+      x: 512,
+      y: 657,
+      size: 9,
+      font,
+      color: black
+    });
+    
+    addField("anio", data.siniestro2, 536, 653, 12, 14, 9);
+
 
     drawLabelField("¿Dificulta visual?:", "dificultadVisual", data.dificultadVisual, 405, 606, 145, 24, 92, 9);
 

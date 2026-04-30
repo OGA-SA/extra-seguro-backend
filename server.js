@@ -199,23 +199,28 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
     }
 
-    function addField(name, value, x, y, width, height, size = 9, uppercase = false) {
-      const field = form.createTextField(name);
+   function addField(name, value, x, y, width, height, size = 9, uppercase = false) {
+    const field = form.createTextField(name);
+  
+    field.setText(uppercase ? upper(value) : clean(value));
+    field.setFontSize(size);
+    field.updateAppearances(font);
+  
+    field.addToPage(page, {
+      x,
+      y,
+      width,
+      height,
+      borderWidth: 0,
+      textColor: black,
+      backgroundColor: rgb(1, 1, 1)
+    });
+  
+    field.defaultUpdateAppearances(font);
+  
+    return field;
+  }
 
-      field.addToPage(page, {
-        x,
-        y,
-        width,
-        height,
-        borderWidth: 0,
-        textColor: black
-      });
-
-      field.setText(uppercase ? upper(value) : clean(value));
-      field.setFontSize(size);
-
-      return field;
-    }
 
     function drawLabelField(label, name, value, x, y, width, height, labelWidth, size = 9) {
       drawBox(x, y, width, height, { borderColor: borderGray });
@@ -459,6 +464,12 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     stage = "apariencias";
 
+    form.getFields().forEach(field => {
+      if (field.defaultUpdateAppearances) {
+        field.defaultUpdateAppearances(font);
+      }
+    });
+    
     form.updateFieldAppearances(font);
 
     stage = "guardar_pdf";

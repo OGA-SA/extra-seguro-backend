@@ -213,7 +213,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       height,
       borderWidth: 0,
       textColor: black,
-      backgroundColor: rgb(1, 1, 1)
+      backgroundColor: rgb(undefined)
     });
   
     field.defaultUpdateAppearances(font);

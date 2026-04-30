@@ -353,20 +353,30 @@ app.post("/generate-pdf-editable", async (req, res) => {
     drawLabelField("¿Dificulta visual?:", "dificultadVisual", data.dificultadVisual, 405, 606, 145, 24, 92, 9);
 
     stage = "texto_central";
+      
+      drawBox(38, 480, 519, 38, {
+        borderColor: black,
+        borderWidth: 0.8
+      });
+      
+      drawCenteredText(
+        "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
+        42,
+        503,
+        511,
+        8,
+        fontBold
+      );
+      
+      drawCenteredText(
+        "ANULA / REMPLAZA EXTRA SEGURO DE FECHA:",
+        42,
+        488,
+        511,
+        8,
+        fontBold
+      );
 
-    drawBox(38, 485, 519, 28, {
-      borderColor: black,
-      borderWidth: 0.8
-    });
-
-    drawCenteredText(
-      "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
-      42,
-      496,
-      511,
-      8,
-      fontBold
-    );
 
     stage = "tablas";
 

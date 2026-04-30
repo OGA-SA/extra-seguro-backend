@@ -18,6 +18,7 @@ app.use(express.urlencoded({ limit: "20mb", extended: true }));
 const TENANT_ID = process.env.TENANT_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const SITE_ID = process.env.SITE_ID;
 const DRIVE_ID = process.env.DRIVE_ID;
 
 const DEFAULT_FOLDER = process.env.FOLDER_PATH || "Extra Seguro";
@@ -59,11 +60,7 @@ async function getAccessToken() {
   });
 
   const data = await r.json();
-
-  if (!r.ok) {
-    throw new Error(JSON.stringify(data));
-  }
-
+  if (!r.ok) throw new Error(JSON.stringify(data));
   return data.access_token;
 }
 
@@ -76,7 +73,7 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
   const uploadUrl =
     `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/root:/${safeFolder}/${safeName}:/content`;
 
-  const response = await fetch(uploadUrl, {
+  const res = await fetch(uploadUrl, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -85,43 +82,12 @@ async function uploadToSharePoint(accessToken, buffer, filename, folder) {
     body: buffer
   });
 
-  if (!response.ok) {
-    const text = await response.text();
+  if (!res.ok) {
+    const text = await res.text();
     throw new Error(text);
   }
 
-  return response.json();
-}
-
-function textValue(value) {
-  if (value === undefined || value === null) return "";
-  return String(value);
-}
-
-async function embedDataUrlImage(pdfDoc, dataUrl) {
-  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.includes(",")) {
-    return null;
-  }
-
-  const match = dataUrl.match(/^data:image\/(png|jpg|jpeg);base64,/i);
-  if (!match) {
-    return null;
-  }
-
-  const imageType = match[1].toLowerCase();
-  const base64 = dataUrl.split(",")[1];
-
-  if (!base64) {
-    return null;
-  }
-
-  const bytes = Buffer.from(base64, "base64");
-
-  if (imageType === "png") {
-    return pdfDoc.embedPng(bytes);
-  }
-
-  return pdfDoc.embedJpg(bytes);
+  return res.json();
 }
 
 // =====================================================
@@ -157,13 +123,9 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       folder
     });
 
-  } catch (error) {
-    console.error("ERROR /upload:");
-    console.error(error);
-
-    res.status(500).json({
-      error: error.message
-    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -177,12 +139,6 @@ app.post("/generate-pdf-editable", async (req, res) => {
   try {
     const data = req.body || {};
     console.log("DATA RECIBIDA PDF EDITABLE:", Object.keys(data));
-
-    const clean = (value) => {
-      if (value === undefined || value === null) return "";
-      return String(value)
-        .replace(/[^\x09\x0A\x0D\x20-\x7EÀ-ÿ°º]/g, "");
-    };
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]);
@@ -201,19 +157,15 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const logoPath = path.join(__dirname, "cars.jpg");
 
     if (fs.existsSync(logoPath)) {
-      try {
-        const logoBytes = fs.readFileSync(logoPath);
-        const logoImage = await pdfDoc.embedJpg(logoBytes);
+      const logoBytes = fs.readFileSync(logoPath);
+      const logoImage = await pdfDoc.embedJpg(logoBytes);
 
-        page.drawImage(logoImage, {
-          x: 40,
-          y: 775,
-          width: 90,
-          height: 35
-        });
-      } catch (e) {
-        console.warn("No se pudo insertar logo:", e.message);
-      }
+      page.drawImage(logoImage, {
+        x: 40,
+        y: 775,
+        width: 90,
+        height: 35
+      });
     }
 
     stage = "titulo";
@@ -253,7 +205,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
         borderWidth: 0.5,
       });
 
-      page.drawText(clean(label), {
+      page.drawText(label, {
         x: x + 4,
         y,
         size: 9,
@@ -269,7 +221,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
         height: 12,
       });
 
-      f.setText(clean(data[name]));
+      f.setText(data[name] || "");
     }
 
     stage = "campos_cabecera";
@@ -308,8 +260,9 @@ app.post("/generate-pdf-editable", async (req, res) => {
             height: imageHeight - 2
           });
         }
-      } catch (e) {
-        console.error("ERROR INSERTANDO canvasImage:", e);
+      } catch (imageError) {
+        console.error("ERROR INSERTANDO canvasImage:");
+        console.error(imageError);
       }
     }
 
@@ -320,51 +273,51 @@ app.post("/generate-pdf-editable", async (req, res) => {
     let f;
 
     f = getField("siniestro");
-    f.setFontSize(10);
-    f.addToPage(page, { x: rightColX + 50, y: fila1Y - 5, width: 45, height: 12 });
-    f.setText(clean(data.siniestro1));
+    f.addToPage(page, {
+      x: rightColX + 50,
+      y: fila1Y - 5,
+      width: 45,
+      height: 12
+    });
+    f.setText(data.siniestro1 || "");
 
     f = getField("anio");
-    f.setFontSize(10);
-    f.addToPage(page, { x: rightColX + 125, y: fila1Y - 5, width: 35, height: 12 });
-    f.setText(clean(data.siniestro2));
+    f.addToPage(page, {
+      x: rightColX + 125,
+      y: fila1Y - 5,
+      width: 35,
+      height: 12
+    });
+    f.setText(data.siniestro2 || "");
 
     f = getField("dificultadVisual");
-    f.setFontSize(10);
     f.addToPage(page, {
       x: rightColX + 105,
       y: fila1Y - 40,
       width: 120,
       height: 12
     });
-    f.setText(clean(data.dificultadVisual));
+    f.setText(data.dificultadVisual || "");
 
-    function drawTabla(tabla, prefix, startXTabla, startY) {
+    function drawTabla(tabla, startX, startY) {
       const colW = [140, 50, 50];
       const rowH = 16;
       let y = startY;
 
-      const rows = Array.isArray(tabla) ? tabla : [];
+      (tabla || []).forEach((row, i) => {
+        if (!row) return;
 
-      rows.forEach((row, i) => {
-        const values = [
-          row?.pieza || "",
-          row?.chapa || "",
-          row?.pintura || ""
-        ];
-
-        values.forEach((val, c) => {
-          const fieldName = `${prefix}_${i}_${c}`;
-          const field = form.createTextField(fieldName);
-
-          field.setText(clean(val));
+        [row.pieza, row.chapa, row.pintura].forEach((val, c) => {
+          const field = form.createTextField(`tbl_${startX}_${i}_${c}`);
 
           field.addToPage(page, {
-            x: startXTabla + colW.slice(0, c).reduce((a, b) => a + b, 0),
+            x: startX + colW.slice(0, c).reduce((a, b) => a + b, 0),
             y,
             width: colW[c],
             height: rowH
           });
+
+          field.setText(val || "");
         });
 
         y -= rowH;
@@ -377,8 +330,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     const tableStartY = 415;
     const bottomTablesY = Math.min(
-      drawTabla(data.tabla1, "tabla1", startX, tableStartY),
-      drawTabla(data.tabla2, "tabla2", startX + tableWidth + gap, tableStartY)
+      drawTabla(data.tabla1, startX, tableStartY),
+      drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY)
     );
 
     stage = "campo_quien";
@@ -390,7 +343,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       width: 140,
       height: 14
     });
-    quienField.setText(clean(data.quien));
+    quienField.setText(data.quien || "");
 
     stage = "apariencias";
 
@@ -429,7 +382,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("ERROR PDF EDITABLE");
+    console.error("ERROR PDF EDITABLE:");
     console.error("STAGE:", stage);
     console.error(err);
     console.error(err.stack);
@@ -450,6 +403,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

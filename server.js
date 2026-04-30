@@ -172,9 +172,17 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 // =====================================================
 
 app.post("/generate-pdf-editable", async (req, res) => {
+  let stage = "inicio";
+
   try {
     const data = req.body || {};
-    console.log("DATA RECIBIDA PDF EDITABLE:", data);
+    console.log("DATA RECIBIDA PDF EDITABLE:", Object.keys(data));
+
+    const clean = (value) => {
+      if (value === undefined || value === null) return "";
+      return String(value)
+        .replace(/[^\x09\x0A\x0D\x20-\x7EÀ-ÿ°º]/g, "");
+    };
 
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]);
@@ -187,6 +195,8 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const gap = 20;
     const startX = 40;
     const totalTablesWidth = tableWidth * 2 + gap;
+
+    stage = "logo";
 
     const logoPath = path.join(__dirname, "cars.jpg");
 
@@ -201,10 +211,12 @@ app.post("/generate-pdf-editable", async (req, res) => {
           width: 90,
           height: 35
         });
-      } catch (logoError) {
-        console.warn("No se pudo insertar el logo:", logoError.message);
+      } catch (e) {
+        console.warn("No se pudo insertar logo:", e.message);
       }
     }
+
+    stage = "titulo";
 
     page.drawRectangle({
       x: startX,
@@ -232,25 +244,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       }
     }
 
-    function addTextField(name, value, x, y, width, height, fontSize = 10) {
-      const field = getField(name);
-      field.setText(textValue(value));
-      field.setFontSize(fontSize);
-
-      field.addToPage(page, {
-        x,
-        y,
-        width,
-        height,
-        borderWidth: 0.3,
-        borderColor: rgb(0.65, 0.65, 0.65),
-        backgroundColor: rgb(1, 1, 1)
-      });
-
-      return field;
-    }
-
-    function drawLabelField(label, name, value, x, y, width) {
+    function drawLabelField(label, name, x, y, width) {
       page.drawRectangle({
         x,
         y: y - 6,
@@ -259,19 +253,30 @@ app.post("/generate-pdf-editable", async (req, res) => {
         borderWidth: 0.5,
       });
 
-      page.drawText(label, {
+      page.drawText(clean(label), {
         x: x + 4,
         y,
         size: 9,
         font
       });
 
-      addTextField(name, value, x + 60, y - 5, width, 12, 10);
+      const f = getField(name);
+
+      f.addToPage(page, {
+        x: x + 60,
+        y: y - 5,
+        width,
+        height: 12,
+      });
+
+      f.setText(clean(data[name]));
     }
 
-    drawLabelField("Taller N°:", "taller", data.taller, startX, 750, 100);
-    drawLabelField("Serie y N°:", "serieNumero", data.serieNumero, startX + 170, 750, 100);
-    drawLabelField("Fecha:", "fecha", data.fecha, startX + 340, 750, 80);
+    stage = "campos_cabecera";
+
+    drawLabelField("Taller N°:", "taller", startX, 750, 100);
+    drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
+    drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
 
     const leftColX = 40;
     const leftColWidth = 330;
@@ -279,132 +284,87 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const topY = 700;
     const imageHeight = 170;
 
-    page.drawRectangle({
-      x: leftColX,
-      y: topY - imageHeight,
-      width: leftColWidth,
-      height: imageHeight,
-      borderWidth: 0.5,
-      borderColor: rgb(0.4, 0.4, 0.4)
-    });
+    stage = "canvasImage";
 
-    try {
-      const canvasImage = await embedDataUrlImage(pdfDoc, data.canvasImage);
+    if (data.canvasImage && typeof data.canvasImage === "string" && data.canvasImage.includes(",")) {
+      try {
+        const header = data.canvasImage.split(",")[0].toLowerCase();
+        const base64 = data.canvasImage.split(",")[1];
+        const imageBytes = Buffer.from(base64, "base64");
 
-      if (canvasImage) {
-        page.drawImage(canvasImage, {
-          x: leftColX + 1,
-          y: topY - imageHeight + 1,
-          width: leftColWidth - 2,
-          height: imageHeight - 2
-        });
+        let img = null;
+
+        if (header.includes("image/png")) {
+          img = await pdfDoc.embedPng(imageBytes);
+        } else if (header.includes("image/jpeg") || header.includes("image/jpg")) {
+          img = await pdfDoc.embedJpg(imageBytes);
+        }
+
+        if (img) {
+          page.drawImage(img, {
+            x: leftColX + 1,
+            y: topY - imageHeight + 1,
+            width: leftColWidth - 2,
+            height: imageHeight - 2
+          });
+        }
+      } catch (e) {
+        console.error("ERROR INSERTANDO canvasImage:", e);
       }
-    } catch (imageError) {
-      console.warn("No se pudo insertar la imagen del canvas:", imageError.message);
     }
+
+    stage = "campos_siniestro";
 
     const fila1Y = topY - 20;
 
-    page.drawText("Siniestro:", {
-      x: rightColX,
-      y: fila1Y,
-      size: 9,
-      font
+    let f;
+
+    f = getField("siniestro");
+    f.setFontSize(10);
+    f.addToPage(page, { x: rightColX + 50, y: fila1Y - 5, width: 45, height: 12 });
+    f.setText(clean(data.siniestro1));
+
+    f = getField("anio");
+    f.setFontSize(10);
+    f.addToPage(page, { x: rightColX + 125, y: fila1Y - 5, width: 35, height: 12 });
+    f.setText(clean(data.siniestro2));
+
+    f = getField("dificultadVisual");
+    f.setFontSize(10);
+    f.addToPage(page, {
+      x: rightColX + 105,
+      y: fila1Y - 40,
+      width: 120,
+      height: 12
     });
+    f.setText(clean(data.dificultadVisual));
 
-    addTextField(
-      "siniestro",
-      data.siniestro1,
-      rightColX + 50,
-      fila1Y - 5,
-      45,
-      12,
-      10
-    );
-
-    page.drawText("Año:", {
-      x: rightColX + 100,
-      y: fila1Y,
-      size: 9,
-      font
-    });
-
-    addTextField(
-      "anio",
-      data.siniestro2,
-      rightColX + 125,
-      fila1Y - 5,
-      35,
-      12,
-      10
-    );
-
-    page.drawText("Dificultad visual:", {
-      x: rightColX,
-      y: fila1Y - 35,
-      size: 9,
-      font
-    });
-
-    addTextField(
-      "dificultadVisual",
-      data.dificultadVisual,
-      rightColX + 105,
-      fila1Y - 40,
-      120,
-      12,
-      10
-    );
-
-    function drawTabla(tabla, prefix, tableX, startY) {
+    function drawTabla(tabla, prefix, startXTabla, startY) {
       const colW = [140, 50, 50];
       const rowH = 16;
       let y = startY;
 
-      const headers = ["Pieza", "Chapa", "Pintura"];
+      const rows = Array.isArray(tabla) ? tabla : [];
 
-      headers.forEach((header, index) => {
-        const x = tableX + colW.slice(0, index).reduce((a, b) => a + b, 0);
-
-        page.drawRectangle({
-          x,
-          y,
-          width: colW[index],
-          height: rowH,
-          color: rgb(0.9, 0.9, 0.9),
-          borderWidth: 0.5,
-          borderColor: rgb(0.4, 0.4, 0.4)
-        });
-
-        page.drawText(header, {
-          x: x + 4,
-          y: y + 4,
-          size: 8,
-          font: fontBold
-        });
-      });
-
-      y -= rowH;
-
-      (Array.isArray(tabla) ? tabla : []).forEach((row, rowIndex) => {
+      rows.forEach((row, i) => {
         const values = [
           row?.pieza || "",
           row?.chapa || "",
           row?.pintura || ""
         ];
 
-        values.forEach((value, colIndex) => {
-          const x = tableX + colW.slice(0, colIndex).reduce((a, b) => a + b, 0);
+        values.forEach((val, c) => {
+          const fieldName = `${prefix}_${i}_${c}`;
+          const field = form.createTextField(fieldName);
 
-          addTextField(
-            `${prefix}_${rowIndex}_${colIndex}`,
-            value,
-            x,
+          field.setText(clean(val));
+
+          field.addToPage(page, {
+            x: startXTabla + colW.slice(0, c).reduce((a, b) => a + b, 0),
             y,
-            colW[colIndex],
-            rowH,
-            8
-          );
+            width: colW[c],
+            height: rowH
+          });
         });
 
         y -= rowH;
@@ -413,66 +373,72 @@ app.post("/generate-pdf-editable", async (req, res) => {
       return y;
     }
 
-    const tableStartY = 415;
+    stage = "tablas";
 
+    const tableStartY = 415;
     const bottomTablesY = Math.min(
       drawTabla(data.tabla1, "tabla1", startX, tableStartY),
       drawTabla(data.tabla2, "tabla2", startX + tableWidth + gap, tableStartY)
     );
 
-    page.drawText("Quien realiza:", {
-      x: startX,
-      y: bottomTablesY - 20,
-      size: 9,
-      font
-    });
+    stage = "campo_quien";
 
-    addTextField(
-      "quien",
-      data.quien,
-      startX + 65,
-      bottomTablesY - 24,
-      140,
-      14,
-      10
-    );
+    const quienField = getField("quien");
+    quienField.addToPage(page, {
+      x: startX + 65,
+      y: bottomTablesY - 24,
+      width: 140,
+      height: 14
+    });
+    quienField.setText(clean(data.quien));
+
+    stage = "apariencias";
+
+    form.getFields().forEach(field => {
+      if (field.setFontSize) {
+        field.setFontSize(10);
+      }
+    });
 
     form.updateFieldAppearances(font);
 
+    stage = "guardar_pdf";
+
     const pdfBytes = await pdfDoc.save({
-      useObjectStreams: false
+      useObjectStreams: false,
     });
+
+    stage = "token_sharepoint";
 
     const token = await getAccessToken();
     const filename = `editable_${Date.now()}.pdf`;
 
-    const requestedFolder = data.folder?.trim();
-    const folder = allowedFolders.includes(requestedFolder)
-      ? requestedFolder
-      : DEFAULT_FOLDER;
+    stage = "upload_sharepoint";
 
     const result = await uploadToSharePoint(
       token,
       Buffer.from(pdfBytes),
       filename,
-      folder
+      DEFAULT_FOLDER
     );
 
     res.json({
       ok: true,
       name: filename,
-      webUrl: result.webUrl,
-      folder
+      webUrl: result.webUrl
     });
 
-  } catch (error) {
-    console.error("ERROR PDF EDITABLE:");
-    console.error(error);
-    console.error(error.stack);
+  } catch (err) {
+    console.error("ERROR PDF EDITABLE");
+    console.error("STAGE:", stage);
+    console.error(err);
+    console.error(err.stack);
 
     res.status(500).json({
-      error: error.message,
-      stack: error.stack
+      ok: false,
+      stage,
+      error: err.message,
+      stack: err.stack
     });
   }
 });

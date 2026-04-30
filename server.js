@@ -314,20 +314,20 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     stage = "campos_derecha";
 
-    drawBox(405, 650, 145, 24, { borderColor: borderGray });
+    drawBox(385, 650, 165, 24, { borderColor: borderGray });
 
     page.drawText("Siniestro:", {
-      x: 410,
+      x: 390,
       y: 657,
       size: 9,
       font,
       color: black
     });
     
-    addField("siniestro", data.siniestro1, 465, 653, 34, 14, 9);
+    addField("siniestro", data.siniestro1, 445, 653, 48, 14, 9);
     
     page.drawText("-", {
-      x: 502,
+      x: 497,
       y: 657,
       size: 10,
       font,
@@ -335,14 +335,14 @@ app.post("/generate-pdf-editable", async (req, res) => {
     });
     
     page.drawText("Año:", {
-      x: 512,
+      x: 507,
       y: 657,
       size: 9,
       font,
       color: black
     });
     
-    addField("anio", data.siniestro2, 536, 653, 12, 14, 9);
+    addField("anio", data.siniestro2, 532, 653, 17, 14, 9);
 
 
     drawLabelField("¿Dificulta visual?:", "dificultadVisual", data.dificultadVisual, 405, 606, 145, 24, 92, 9);

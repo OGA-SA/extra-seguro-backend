@@ -200,26 +200,25 @@ app.post("/generate-pdf-editable", async (req, res) => {
     }
 
    function addField(name, value, x, y, width, height, size = 9, uppercase = false) {
-    const field = form.createTextField(name);
-  
-    field.setText(uppercase ? upper(value) : clean(value));
-    field.setFontSize(size);
-    field.updateAppearances(font);
-  
-    field.addToPage(page, {
-      x,
-      y,
-      width,
-      height,
-      borderWidth: 0,
-      textColor: black,
-      backgroundColor: rgb(1,1,1)
-    });
-  
-    field.defaultUpdateAppearances(font);
-  
-    return field;
-  }
+      const field = form.createTextField(name);
+    
+      field.addToPage(page, {
+        x,
+        y,
+        width,
+        height,
+        borderWidth: 0,
+        textColor: black,
+        backgroundColor: rgb(1, 1, 1)
+      });
+    
+      field.setText(uppercase ? upper(value) : clean(value));
+      field.setFontSize(size);
+      field.defaultUpdateAppearances(font);
+    
+      return field;
+    }
+
 
 
     function drawLabelField(label, name, value, x, y, width, height, labelWidth, size = 9) {

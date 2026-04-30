@@ -147,94 +147,147 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const tableWidth = 240;
-    const gap = 20;
-    const startX = 40;
-    const totalTablesWidth = tableWidth * 2 + gap;
+    const black = rgb(0, 0, 0);
+    const gray = rgb(0.8, 0.8, 0.8);
+    const borderGray = rgb(0.6, 0.6, 0.6);
+    const white = rgb(1, 1, 1);
+
+    function clean(value) {
+      if (value === undefined || value === null) return "";
+      return String(value)
+        .replace(/[^\x09\x0A\x0D\x20-\x7EÀ-ÿ°º¿]/g, "")
+        .trim();
+    }
+
+    function upper(value) {
+      return clean(value).toUpperCase();
+    }
+
+    function drawCenteredText(text, x, y, width, size, usedFont) {
+      const safe = clean(text);
+      const textWidth = usedFont.widthOfTextAtSize(safe, size);
+      page.drawText(safe, {
+        x: x + Math.max((width - textWidth) / 2, 2),
+        y,
+        size,
+        font: usedFont,
+        color: black
+      });
+    }
+
+    function drawTextFit(text, x, y, width, size, usedFont) {
+      let safe = clean(text);
+      let finalSize = size;
+
+      while (usedFont.widthOfTextAtSize(safe, finalSize) > width && finalSize > 5) {
+        finalSize -= 0.5;
+      }
+
+      page.drawText(safe, {
+        x,
+        y,
+        size: finalSize,
+        font: usedFont,
+        color: black
+      });
+    }
+
+    function drawBox(x, y, width, height, options = {}) {
+      page.drawRectangle({
+        x,
+        y,
+        width,
+        height,
+        color: options.fill || undefined,
+        borderWidth: options.borderWidth === undefined ? 0.7 : options.borderWidth,
+        borderColor: options.borderColor || black
+      });
+    }
+
+    function addField(name, value, x, y, width, height, size = 8, uppercase = false) {
+      const field = form.createTextField(name);
+
+      field.addToPage(page, {
+        x,
+        y,
+        width,
+        height,
+        borderWidth: 0,
+        backgroundColor: white
+      });
+
+      field.setText(uppercase ? upper(value) : clean(value));
+      field.setFontSize(size);
+
+      return field;
+    }
+
+    function drawLabelField(label, name, value, x, y, width, height, labelWidth, size = 8) {
+      drawBox(x, y, width, height, { borderColor: borderGray });
+
+      page.drawText(clean(label), {
+        x: x + 5,
+        y: y + 7,
+        size,
+        font,
+        color: black
+      });
+
+      addField(
+        name,
+        value,
+        x + labelWidth,
+        y + 4,
+        width - labelWidth - 6,
+        height - 8,
+        size
+      );
+    }
 
     stage = "logo";
 
     const logoPath = path.join(__dirname, "cars.jpg");
 
     if (fs.existsSync(logoPath)) {
-      const logoBytes = fs.readFileSync(logoPath);
-      const logoImage = await pdfDoc.embedJpg(logoBytes);
+      try {
+        const logoBytes = fs.readFileSync(logoPath);
+        const logoImage = await pdfDoc.embedJpg(logoBytes);
 
-      page.drawImage(logoImage, {
-        x: 40,
-        y: 775,
-        width: 90,
-        height: 35
-      });
+        page.drawImage(logoImage, {
+          x: 38,
+          y: 790,
+          width: 105,
+          height: 38
+        });
+      } catch (logoError) {
+        console.error("ERROR INSERTANDO LOGO:", logoError);
+      }
     }
 
     stage = "titulo";
 
-    page.drawRectangle({
-      x: startX,
-      y: 790,
-      width: totalTablesWidth,
-      height: 20,
-      color: rgb(0.9, 0.9, 0.9)
+    drawBox(38, 758, 519, 26, {
+      fill: gray,
+      borderWidth: 0
     });
 
-    const titulo = "FORMULARIO EXTRA SEGURO";
-    const tituloWidth = fontBold.widthOfTextAtSize(titulo, 12);
+    drawCenteredText("FORMULARIO EXTRA SEGURO", 38, 767, 519, 12, fontBold);
 
-    page.drawText(titulo, {
-      x: startX + (totalTablesWidth - tituloWidth) / 2,
-      y: 794,
-      size: 12,
-      font: fontBold,
+    stage = "cabecera";
+
+    drawLabelField("Taller N°:", "taller", data.taller, 55, 718, 190, 24, 62, 9);
+    drawLabelField("Serie y N°:", "serieNumero", data.serieNumero, 265, 718, 185, 24, 72, 9);
+    drawLabelField("Fecha:", "fecha", data.fecha, 470, 718, 80, 24, 38, 8);
+
+    const leftColX = 48;
+    const canvasY = 525;
+    const canvasW = 330;
+    const canvasH = 165;
+
+    drawBox(leftColX, canvasY, canvasW, canvasH, {
+      borderColor: black,
+      borderWidth: 0.8
     });
-
-    function getField(name) {
-      try {
-        return form.getTextField(name);
-      } catch {
-        return form.createTextField(name);
-      }
-    }
-
-    function drawLabelField(label, name, x, y, width) {
-      page.drawRectangle({
-        x,
-        y: y - 6,
-        width: width + 60,
-        height: 20,
-        borderWidth: 0.5,
-      });
-
-      page.drawText(label, {
-        x: x + 4,
-        y,
-        size: 9,
-        font
-      });
-
-      const f = getField(name);
-
-      f.addToPage(page, {
-        x: x + 60,
-        y: y - 5,
-        width,
-        height: 12,
-      });
-
-      f.setText(data[name] || "");
-    }
-
-    stage = "campos_cabecera";
-
-    drawLabelField("Taller N°:", "taller", startX, 750, 100);
-    drawLabelField("Serie y N°:", "serieNumero", startX + 170, 750, 100);
-    drawLabelField("Fecha:", "fecha", startX + 340, 750, 80);
-
-    const leftColX = 40;
-    const leftColWidth = 330;
-    const rightColX = leftColX + leftColWidth + 15;
-    const topY = 700;
-    const imageHeight = 170;
 
     stage = "canvasImage";
 
@@ -255,9 +308,9 @@ app.post("/generate-pdf-editable", async (req, res) => {
         if (img) {
           page.drawImage(img, {
             x: leftColX + 1,
-            y: topY - imageHeight + 1,
-            width: leftColWidth - 2,
-            height: imageHeight - 2
+            y: canvasY + 1,
+            width: canvasW - 2,
+            height: canvasH - 2
           });
         }
       } catch (imageError) {
@@ -266,92 +319,126 @@ app.post("/generate-pdf-editable", async (req, res) => {
       }
     }
 
-    stage = "campos_siniestro";
+    stage = "campos_derecha";
 
-    const fila1Y = topY - 20;
+    drawLabelField("Siniestro:", "siniestro", data.siniestro1, 405, 650, 145, 24, 58, 9);
+    page.drawText("-", { x: 493, y: 657, size: 10, font, color: black });
+    page.drawText("Año:", { x: 502, y: 657, size: 8, font, color: black });
+    addField("anio", data.siniestro2, 526, 654, 20, 12, 8);
 
-    let f;
+    drawLabelField("¿Dificulta visual?:", "dificultadVisual", data.dificultadVisual, 405, 606, 145, 24, 92, 8);
 
-    f = getField("siniestro");
-    f.addToPage(page, {
-      x: rightColX + 50,
-      y: fila1Y - 5,
-      width: 45,
-      height: 12
+    stage = "texto_central";
+
+    drawBox(38, 485, 519, 28, {
+      borderColor: black,
+      borderWidth: 0.8
     });
-    f.setText(data.siniestro1 || "");
 
-    f = getField("anio");
-    f.addToPage(page, {
-      x: rightColX + 125,
-      y: fila1Y - 5,
-      width: 35,
-      height: 12
-    });
-    f.setText(data.siniestro2 || "");
-
-    f = getField("dificultadVisual");
-    f.addToPage(page, {
-      x: rightColX + 105,
-      y: fila1Y - 40,
-      width: 120,
-      height: 12
-    });
-    f.setText(data.dificultadVisual || "");
-
-    function drawTabla(tabla, startX, startY) {
-      const colW = [140, 50, 50];
-      const rowH = 16;
-      let y = startY;
-
-      (tabla || []).forEach((row, i) => {
-        if (!row) return;
-
-        [row.pieza, row.chapa, row.pintura].forEach((val, c) => {
-          const field = form.createTextField(`tbl_${startX}_${i}_${c}`);
-
-          field.addToPage(page, {
-            x: startX + colW.slice(0, c).reduce((a, b) => a + b, 0),
-            y,
-            width: colW[c],
-            height: rowH
-          });
-
-          field.setText(val || "");
-        });
-
-        y -= rowH;
-      });
-
-      return y;
-    }
+    drawCenteredText(
+      "SE INFORMAN RUBROS CUYOS PORCENTAJES NO SE TENDRAN EN CUENTA EN FUTURAS RECLAMACIONES",
+      42,
+      496,
+      511,
+      8,
+      fontBold
+    );
 
     stage = "tablas";
 
-    const tableStartY = 415;
+    function drawTabla(tabla, prefix, x, y) {
+      const rows = Array.isArray(tabla) ? tabla : [];
+      const colW = [150, 50, 50];
+      const tableW = colW.reduce((a, b) => a + b, 0);
+      const headerH = 18;
+      const rowH = 15;
+
+      drawBox(x, y, tableW, headerH, {
+        fill: gray,
+        borderColor: black,
+        borderWidth: 0.7
+      });
+
+      let cursorX = x;
+      const headers = ["PIEZA / ACCESORIOS", "CHAPA", "PINTURA"];
+
+      headers.forEach((header, c) => {
+        drawBox(cursorX, y, colW[c], headerH, {
+          fill: gray,
+          borderColor: black,
+          borderWidth: 0.7
+        });
+
+        drawCenteredText(header, cursorX, y + 6, colW[c], 7, fontBold);
+        cursorX += colW[c];
+      });
+
+      let currentY = y - rowH;
+
+      rows.forEach((row, i) => {
+        const values = [
+          row && row.pieza ? row.pieza : "",
+          row && row.chapa ? row.chapa : "",
+          row && row.pintura ? row.pintura : ""
+        ];
+
+        let cellX = x;
+
+        values.forEach((value, c) => {
+          drawBox(cellX, currentY, colW[c], rowH, {
+            borderColor: black,
+            borderWidth: 0.6
+          });
+
+          addField(
+            `${prefix}_${i}_${c}`,
+            value,
+            cellX + 2,
+            currentY + 2,
+            colW[c] - 4,
+            rowH - 4,
+            7,
+            true
+          );
+
+          cellX += colW[c];
+        });
+
+        currentY -= rowH;
+      });
+
+      return currentY;
+    }
+
+    const tableTopY = 452;
+
     const bottomTablesY = Math.min(
-      drawTabla(data.tabla1, startX, tableStartY),
-      drawTabla(data.tabla2, startX + tableWidth + gap, tableStartY)
+      drawTabla(data.tabla1, "tabla1", 38, tableTopY),
+      drawTabla(data.tabla2, "tabla2", 307, tableTopY)
     );
 
-    stage = "campo_quien";
+    stage = "firma";
 
-    const quienField = getField("quien");
-    quienField.addToPage(page, {
-      x: startX + 65,
-      y: bottomTablesY - 24,
-      width: 140,
-      height: 14
+    const firmaY = bottomTablesY - 30;
+
+    page.drawText("POR CARS:", {
+      x: 42,
+      y: firmaY + 5,
+      size: 9,
+      font: fontBold,
+      color: black
     });
-    quienField.setText(data.quien || "");
+
+    addField("quien", data.quien, 95, firmaY + 1, 170, 14, 9, true);
+
+    page.drawLine({
+      start: { x: 38, y: firmaY },
+      end: { x: 280, y: firmaY },
+      thickness: 1.2,
+      color: black
+    });
 
     stage = "apariencias";
-
-    form.getFields().forEach(field => {
-      if (field.setFontSize) {
-        field.setFontSize(10);
-      }
-    });
 
     form.updateFieldAppearances(font);
 
@@ -403,6 +490,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
 
 
 

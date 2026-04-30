@@ -13,8 +13,6 @@ const upload = multer();
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
-// ================= ENV =================
-
 const TENANT_ID = process.env.TENANT_ID;
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -28,8 +26,6 @@ const allowedOrigins = (process.env.ALLOWED_ORIGIN || "")
   .split(",")
   .filter(Boolean);
 
-// ================= CORS =================
-
 app.use(cors({
   origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
   methods: ["POST", "OPTIONS", "GET"]
@@ -37,11 +33,7 @@ app.use(cors({
 
 app.options("*", cors());
 
-// ================= SANITY =================
-
 app.get("/", (req, res) => res.send("Backend funcionando"));
-
-// ================= TOKEN =================
 
 async function getAccessToken() {
   const tokenUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
@@ -63,8 +55,6 @@ async function getAccessToken() {
   if (!r.ok) throw new Error(JSON.stringify(data));
   return data.access_token;
 }
-
-// ================= SHAREPOINT UPLOAD =================
 
 async function uploadToSharePoint(accessToken, buffer, filename, folder) {
   const safeFolder = encodeURI(folder);
@@ -150,7 +140,6 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const black = rgb(0, 0, 0);
     const gray = rgb(0.8, 0.8, 0.8);
     const borderGray = rgb(0.6, 0.6, 0.6);
-    const white = rgb(1, 1, 1);
 
     function clean(value) {
       if (value === undefined || value === null) return "";
@@ -163,30 +152,36 @@ app.post("/generate-pdf-editable", async (req, res) => {
       return clean(value).toUpperCase();
     }
 
+    function formatDate(value) {
+      const safe = clean(value);
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(safe)) {
+        const [yyyy, mm, dd] = safe.split("-");
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      return safe;
+    }
+
+    function findLogoPath() {
+      const names = ["Cars.JPG", "cars.jpg", "Cars.jpg", "CARS.JPG", "cars.JPG"];
+
+      for (const name of names) {
+        const logoPath = path.join(__dirname, name);
+        if (fs.existsSync(logoPath)) return logoPath;
+      }
+
+      return null;
+    }
+
     function drawCenteredText(text, x, y, width, size, usedFont) {
       const safe = clean(text);
       const textWidth = usedFont.widthOfTextAtSize(safe, size);
+
       page.drawText(safe, {
         x: x + Math.max((width - textWidth) / 2, 2),
         y,
         size,
-        font: usedFont,
-        color: black
-      });
-    }
-
-    function drawTextFit(text, x, y, width, size, usedFont) {
-      let safe = clean(text);
-      let finalSize = size;
-
-      while (usedFont.widthOfTextAtSize(safe, finalSize) > width && finalSize > 5) {
-        finalSize -= 0.5;
-      }
-
-      page.drawText(safe, {
-        x,
-        y,
-        size: finalSize,
         font: usedFont,
         color: black
       });
@@ -204,7 +199,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       });
     }
 
-    function addField(name, value, x, y, width, height, size = 8, uppercase = false) {
+    function addField(name, value, x, y, width, height, size = 9, uppercase = false) {
       const field = form.createTextField(name);
 
       field.addToPage(page, {
@@ -213,7 +208,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
         width,
         height,
         borderWidth: 0,
-        backgroundColor: white
+        textColor: black
       });
 
       field.setText(uppercase ? upper(value) : clean(value));
@@ -222,7 +217,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       return field;
     }
 
-    function drawLabelField(label, name, value, x, y, width, height, labelWidth, size = 8) {
+    function drawLabelField(label, name, value, x, y, width, height, labelWidth, size = 9) {
       drawBox(x, y, width, height, { borderColor: borderGray });
 
       page.drawText(clean(label), {
@@ -237,31 +232,33 @@ app.post("/generate-pdf-editable", async (req, res) => {
         name,
         value,
         x + labelWidth,
-        y + 4,
+        y + 3,
         width - labelWidth - 6,
-        height - 8,
+        height - 6,
         size
       );
     }
 
     stage = "logo";
 
-    const logoPath = path.join(__dirname, "cars.jpg");
+    const logoPath = findLogoPath();
 
-    if (fs.existsSync(logoPath)) {
+    if (logoPath) {
       try {
         const logoBytes = fs.readFileSync(logoPath);
         const logoImage = await pdfDoc.embedJpg(logoBytes);
 
         page.drawImage(logoImage, {
           x: 38,
-          y: 790,
-          width: 105,
-          height: 38
+          y: 795,
+          width: 110,
+          height: 34
         });
       } catch (logoError) {
         console.error("ERROR INSERTANDO LOGO:", logoError);
       }
+    } else {
+      console.warn("No se encontró logo Cars.JPG/cars.jpg en el backend");
     }
 
     stage = "titulo";
@@ -277,17 +274,12 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     drawLabelField("Taller N°:", "taller", data.taller, 55, 718, 190, 24, 62, 9);
     drawLabelField("Serie y N°:", "serieNumero", data.serieNumero, 265, 718, 185, 24, 72, 9);
-    drawLabelField("Fecha:", "fecha", data.fecha, 470, 718, 80, 24, 38, 8);
+    drawLabelField("Fecha:", "fecha", formatDate(data.fecha), 470, 718, 80, 24, 38, 9);
 
     const leftColX = 48;
     const canvasY = 525;
     const canvasW = 330;
     const canvasH = 165;
-
-    drawBox(leftColX, canvasY, canvasW, canvasH, {
-      borderColor: black,
-      borderWidth: 0.8
-    });
 
     stage = "canvasImage";
 
@@ -307,10 +299,10 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
         if (img) {
           page.drawImage(img, {
-            x: leftColX + 1,
-            y: canvasY + 1,
-            width: canvasW - 2,
-            height: canvasH - 2
+            x: leftColX,
+            y: canvasY,
+            width: canvasW,
+            height: canvasH
           });
         }
       } catch (imageError) {
@@ -323,10 +315,10 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     drawLabelField("Siniestro:", "siniestro", data.siniestro1, 405, 650, 145, 24, 58, 9);
     page.drawText("-", { x: 493, y: 657, size: 10, font, color: black });
-    page.drawText("Año:", { x: 502, y: 657, size: 8, font, color: black });
-    addField("anio", data.siniestro2, 526, 654, 20, 12, 8);
+    page.drawText("Año:", { x: 502, y: 657, size: 9, font, color: black });
+    addField("anio", data.siniestro2, 526, 653, 20, 14, 9);
 
-    drawLabelField("¿Dificulta visual?:", "dificultadVisual", data.dificultadVisual, 405, 606, 145, 24, 92, 8);
+    drawLabelField("¿Dificulta visual?:", "dificultadVisual", data.dificultadVisual, 405, 606, 145, 24, 92, 9);
 
     stage = "texto_central";
 
@@ -394,10 +386,10 @@ app.post("/generate-pdf-editable", async (req, res) => {
             `${prefix}_${i}_${c}`,
             value,
             cellX + 2,
-            currentY + 2,
+            currentY + 1,
             colW[c] - 4,
-            rowH - 4,
-            7,
+            rowH - 2,
+            8,
             true
           );
 
@@ -483,13 +475,13 @@ app.post("/generate-pdf-editable", async (req, res) => {
   }
 });
 
-// ================= START SERVER =================
-
 const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+
+
 
 
 

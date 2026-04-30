@@ -491,7 +491,9 @@ app.post("/generate-pdf-editable", async (req, res) => {
     stage = "token_sharepoint";
 
     const token = await getAccessToken();
-    const filename = `editable_${Date.now()}.pdf`;
+    const siniestro = data.siniestro1 || "Siniestro";
+    const anio = data.siniestro2 || "Anio";
+    const filename = `${siniestro}_${anio}_EXTRA_SEGURO.pdf`;
 
     stage = "upload_sharepoint";
 

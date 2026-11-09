@@ -145,14 +145,14 @@ app.post("/generate-pdf-editable", async (req, res) => {
               // Detecta horas: 5hs, 5 hs, 6h, 5 horas
               const horas = valor.match(/(\d+(?:\.\d+)?)\s*(?:HS|H|HORAS?)/);
       
-              if (horas && parseFloat(horas[1]) >= 5) {
+              if (horas && parseFloat(horas[1]) < 6) {
                 return true;
               }
       
               // Detecta porcentajes: 50%, 60%, 75%
               const porcentaje = valor.match(/(\d+(?:\.\d+)?)\s*%/);
       
-              if (porcentaje && parseFloat(porcentaje[1]) >= 50) {
+              if (porcentaje && parseFloat(porcentaje[1]) <= 50) {
                 return true;
               }
       

@@ -528,7 +528,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
       color: black
     });
 
-    addField("quien", data.quien, 95, firmaY + 1, 170, 14, 9, true);
+    addField("firmaQuien", data.quien, 95, firmaY + 1, 170, 14, 9, true);
 
     page.drawLine({
       start: { x: 38, y: firmaY },

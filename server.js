@@ -502,7 +502,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
     // Mostrar el aviso solamente si se cumple algún umbral
     if (alertaMagnitud) {
       page.drawText(
-        "IMPORTANTE: Se debe enviar informe a BSE y taller por la magnitud de daños",
+        "IMPORTANTE: Por magnitud de daños no requiere extra seguro firmado al realizar visto reparado",
         {
           x: 38,
           y: bottomTablesY - 20,

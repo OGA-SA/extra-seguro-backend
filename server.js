@@ -162,7 +162,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
               if (numero) {
                 const n = parseFloat(numero[1]);
       
-                if (n >= 50 || (n >= 5 && n < 50)) {
+                if (n <= 50 || (n < 6 && n < 50)) {
                   return true;
                 }
               }
@@ -499,7 +499,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
 
     stage = "alerta_magnitud";
 
-    // Mostrar el aviso solamente si se cumple algún umbral
+    /* Mostrar el aviso solamente si se cumple algún umbral (quitar si hay que hacer la alerta)
     if (alertaMagnitud) {
       page.drawText(
         "IMPORTANTE: Por magnitud de daños no requiere extra seguro firmado al realizar visto reparado",
@@ -512,7 +512,7 @@ app.post("/generate-pdf-editable", async (req, res) => {
         }
       );
     }
-
+*/
     stage = "firma";
 
     // Si hay alerta, bajar la firma para que no se superponga

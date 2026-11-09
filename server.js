@@ -130,6 +130,52 @@ app.post("/generate-pdf-editable", async (req, res) => {
     const data = req.body || {};
     console.log("DATA RECIBIDA PDF EDITABLE:", Object.keys(data));
 
+      // Detectar si alguna pieza supera el umbral de magnitud
+          function detectarAlertaMagnitud(tabla1, tabla2) {
+            const todasLasPiezas = [
+              ...(Array.isArray(tabla1) ? tabla1 : []),
+              ...(Array.isArray(tabla2) ? tabla2 : [])
+            ];
+      
+            return todasLasPiezas.some(pieza => {
+              const valor = String(pieza?.chapa || "")
+                .toUpperCase()
+                .replace(",", ".");
+      
+              // Detecta horas: 5hs, 5 hs, 6h, 5 horas
+              const horas = valor.match(/(\d+(?:\.\d+)?)\s*(?:HS|H|HORAS?)/);
+      
+              if (horas && parseFloat(horas[1]) >= 5) {
+                return true;
+              }
+      
+              // Detecta porcentajes: 50%, 60%, 75%
+              const porcentaje = valor.match(/(\d+(?:\.\d+)?)\s*%/);
+      
+              if (porcentaje && parseFloat(porcentaje[1]) >= 50) {
+                return true;
+              }
+      
+              // También contempla valores numéricos sin unidad
+              const numero = valor.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
+      
+              if (numero) {
+                const n = parseFloat(numero[1]);
+      
+                if (n >= 50 || (n >= 5 && n < 50)) {
+                  return true;
+                }
+              }
+      
+              return false;
+            });
+          }
+      
+          const alertaMagnitud = detectarAlertaMagnitud(
+            data.tabla1,
+            data.tabla2
+          );
+    
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]);
     const form = pdfDoc.getForm();
@@ -451,9 +497,45 @@ app.post("/generate-pdf-editable", async (req, res) => {
       drawTabla(data.tabla2, "tabla2", 307, tableTopY)
     );
 
+    stage = "alerta_magnitud";
+
+    // Mostrar el aviso solamente si se cumple algún umbral
+    if (alertaMagnitud) {
+      page.drawText(
+        "IMPORTANTE: Se debe enviar informe a BSE y taller por la magnitud de daños",
+        {
+          x: 38,
+          y: bottomTablesY - 20,
+          size: 8,
+          font: fontBold,
+          color: rgb(0.8, 0, 0)
+        }
+      );
+    }
+
     stage = "firma";
 
-    const firmaY = bottomTablesY - 30;
+    // Si hay alerta, bajar la firma para que no se superponga
+    const firmaY = alertaMagnitud
+      ? bottomTablesY - 45
+      : bottomTablesY - 30;
+
+    page.drawText("POR CARS:", {
+      x: 42,
+      y: firmaY + 5,
+      size: 9,
+      font: fontBold,
+      color: black
+    });
+
+    addField("quien", data.quien, 95, firmaY + 1, 170, 14, 9, true);
+
+    page.drawLine({
+      start: { x: 38, y: firmaY },
+      end: { x: 280, y: firmaY },
+      thickness: 1.2,
+      color: black
+    });
 
     page.drawText("POR CARS:", {
       x: 42,
